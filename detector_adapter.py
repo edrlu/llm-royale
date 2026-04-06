@@ -51,7 +51,7 @@ class YOLOCRLive(Model):
 
 
 class KataCRDetector:
-    def __init__(self, weights: Sequence[str], device: str = "cuda", conf_thres: float = 0.25, iou_thres: float = 0.45) -> None:
+    def __init__(self, weights: Sequence[str], device: str = "cpu", conf_thres: float = 0.25, iou_thres: float = 0.45) -> None:
         self.device = device
         self.conf_thres = conf_thres
         self.iou_thres = iou_thres

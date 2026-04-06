@@ -89,6 +89,30 @@ def _format_weight_options(paths: tuple[Path, ...]) -> str:
     return "\n".join(f"  - {path}" for path in paths)
 
 
+def resolve_device(raw_device: str) -> str:
+    requested = (raw_device or "auto").strip().lower()
+    if requested == "auto":
+        try:
+            import torch
+
+            return "cuda" if torch.cuda.is_available() else "cpu"
+        except Exception:
+            return "cpu"
+
+    if requested.startswith("cuda") or requested.replace(",", "").isdigit():
+        try:
+            import torch
+
+            if torch.cuda.is_available():
+                return raw_device
+        except Exception:
+            pass
+        print("CUDA requested but unavailable; falling back to CPU.", file=sys.stderr)
+        return "cpu"
+
+    return raw_device
+
+
 def resolve_weights_paths(raw_weights: Optional[Path], parser: argparse.ArgumentParser) -> tuple[Path, ...]:
     if raw_weights is not None:
         weights = raw_weights.expanduser().resolve()
@@ -153,7 +177,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help="Path to a KataCR YOLOv8 .pt file or to a directory containing model .pt files.",
     )
-    parser.add_argument("--device", default="cuda", help="Ultralytics device string, for example cuda, cuda:0, or cpu.")
+    parser.add_argument("--device", default="auto", help="Inference device: auto, cpu, cuda, cuda:0, or 0.")
     parser.add_argument("--conf-thres", type=float, default=0.25)
     parser.add_argument("--iou-thres", type=float, default=0.45)
     parser.add_argument("--frame-skip", type=int, default=0, help="Run detection every N+1 frames.")
@@ -191,7 +215,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> AppConfig:
         source=args.source,
         input_source=args.input_source,
         weights=weights,
-        device=args.device,
+        device=resolve_device(args.device),
         conf_thres=args.conf_thres,
         iou_thres=args.iou_thres,
         frame_skip=max(0, args.frame_skip),
