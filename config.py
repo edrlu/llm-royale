@@ -13,6 +13,7 @@ VENDOR_DIR = ROOT / "vendor"
 KATACR_ROOT = VENDOR_DIR / "KataCR"
 DATASET_ROOT = VENDOR_DIR / "Clash-Royale-Detection-Dataset"
 OUTPUT_ROOT = ROOT / "outputs"
+DEFAULT_WEIGHTS_DIR = ROOT / "weights"
 
 
 def ensure_katacr_environment(dataset_path: Optional[Path] = None) -> None:
@@ -68,13 +69,42 @@ def parse_capture_region(value: Optional[str]) -> Optional[tuple[int, int, int, 
     return tuple(parts)  # type: ignore[return-value]
 
 
+def resolve_weights_path(raw_weights: Optional[Path], parser: argparse.ArgumentParser) -> Path:
+    if raw_weights is not None:
+        weights = raw_weights.expanduser().resolve()
+        if not weights.exists():
+            parser.error(f"weights file does not exist: {weights}")
+        return weights
+
+    candidates = sorted(path.resolve() for path in DEFAULT_WEIGHTS_DIR.glob("*.pt") if path.is_file())
+    if len(candidates) == 1:
+        return candidates[0]
+    if len(candidates) > 1:
+        options = "\n".join(f"  - {path}" for path in candidates)
+        parser.error(
+            "multiple weights files found in the local weights directory; pass --weights explicitly:\n"
+            f"{options}"
+        )
+
+    parser.error(
+        "no weights file was provided. Either pass --weights /path/to/model.pt or place exactly one "
+        f"`.pt` file in {DEFAULT_WEIGHTS_DIR}"
+    )
+    raise AssertionError("unreachable")
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Live Clash Royale perception viewer using KataCR detection and scrcpy capture.",
     )
     parser.add_argument("--source", choices=("scrcpy", "video", "camera"), default="scrcpy")
     parser.add_argument("--input", dest="input_source", default=None, help="Video path or camera index for non-scrcpy sources.")
-    parser.add_argument("--weights", required=True, type=Path, help="Path to KataCR YOLOv8 .pt weights.")
+    parser.add_argument(
+        "--weights",
+        type=Path,
+        default=None,
+        help="Path to KataCR YOLOv8 .pt weights. If omitted, auto-detect a single .pt file in weights/.",
+    )
     parser.add_argument("--device", default="cuda", help="Ultralytics device string, for example cuda, cuda:0, or cpu.")
     parser.add_argument("--conf-thres", type=float, default=0.25)
     parser.add_argument("--iou-thres", type=float, default=0.45)
@@ -105,9 +135,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def parse_args(argv: Optional[Sequence[str]] = None) -> AppConfig:
     parser = build_arg_parser()
     args = parser.parse_args(argv)
-    weights = args.weights.expanduser().resolve()
-    if not weights.exists():
-        parser.error(f"weights file does not exist: {weights}")
+    weights = resolve_weights_path(args.weights, parser)
     dataset_path = args.dataset_path.expanduser().resolve()
     output_dir = args.output_dir.expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
