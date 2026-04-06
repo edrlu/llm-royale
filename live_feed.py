@@ -138,7 +138,13 @@ class ScrcpyWindowSource(FrameSource):
             # mss uses thread-local Windows handles, so it must be constructed on the capture thread.
             self.mss = mss.mss()
         monitor = self._current_monitor()
+        if monitor["width"] <= 0 or monitor["height"] <= 0:
+            time.sleep(0.01)
+            return None
         image = np.array(self.mss.grab(monitor), dtype=np.uint8)
+        if image.size == 0:
+            time.sleep(0.01)
+            return None
         frame = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
         packet = FramePacket(frame_bgr=frame, source_name="scrcpy", frame_index=self.frame_index, timestamp=time.time())
         self.frame_index += 1
@@ -220,7 +226,10 @@ class CaptureWorker(threading.Thread):
             while not self.stop_event.is_set():
                 packet = self.source.read()
                 if packet is None:
-                    break
+                    if getattr(self.source, "proc", None) is not None and self.source.proc and self.source.proc.poll() is not None:
+                        break
+                    time.sleep(0.005)
+                    continue
                 self.relay.push(packet)
         finally:
             self.relay.close()
