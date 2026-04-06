@@ -112,7 +112,16 @@ class ScrcpyWindowSource(FrameSource):
         if self.window is None:
             raise RuntimeError("scrcpy window capture is not initialized")
         box = self.window.getClientFrame()
-        return {"left": int(box.left), "top": int(box.top), "width": int(box.width), "height": int(box.height)}
+        left = int(getattr(box, "left"))
+        top = int(getattr(box, "top"))
+        width = getattr(box, "width", None)
+        height = getattr(box, "height", None)
+        if width is None or height is None:
+            right = int(getattr(box, "right"))
+            bottom = int(getattr(box, "bottom"))
+            width = right - left
+            height = bottom - top
+        return {"left": left, "top": top, "width": int(width), "height": int(height)}
 
     def read(self) -> Optional[FramePacket]:
         if self.proc and self.proc.poll() is not None:

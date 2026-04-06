@@ -6,11 +6,12 @@ from typing import Any, Sequence
 import numpy as np
 import torch
 import torchvision
-from ultralytics.engine.model import Model
 
 from config import ensure_katacr_environment
 
 ensure_katacr_environment()
+
+from ultralytics.engine.model import Model
 
 from katacr.constants.label_list import idx2unit, unit2idx  # noqa: E402
 from katacr.yolov8.custom_model import CRDetectionModel  # noqa: E402

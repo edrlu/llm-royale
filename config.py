@@ -15,11 +15,14 @@ DATASET_ROOT = VENDOR_DIR / "Clash-Royale-Detection-Dataset"
 OUTPUT_ROOT = ROOT / "outputs"
 DEFAULT_WEIGHTS_DIR = ROOT / "weights"
 DEFAULT_RUNS_DIR = ROOT / "runs"
+ULTRALYTICS_CONFIG_DIR = ROOT / ".ultralytics"
 
 
 def ensure_katacr_environment(dataset_path: Optional[Path] = None) -> None:
     dataset = (dataset_path or DATASET_ROOT).expanduser().resolve()
     os.environ["KATACR_DATASET_PATH"] = str(dataset)
+    ULTRALYTICS_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    os.environ.setdefault("YOLO_CONFIG_DIR", str(ULTRALYTICS_CONFIG_DIR))
     katacr_path = str(KATACR_ROOT)
     if katacr_path not in sys.path:
         sys.path.insert(0, katacr_path)
