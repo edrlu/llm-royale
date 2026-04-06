@@ -487,6 +487,7 @@ Capture / scrcpy:
 - `--playback-crop`
 - `--scrcpy-path`
 - `--adb-path`
+- `--debug-source`
 - `--ffmpeg-path`
 - `--scrcpy-serial`
 - `--scrcpy-capture-mode`

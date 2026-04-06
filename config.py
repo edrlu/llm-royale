@@ -90,6 +90,7 @@ class AppConfig:
     scrcpy_capture_mode: str
     scrcpy_capture_fps: int
     scrcpy_video_bit_rate: int
+    debug_source: bool
     scrcpy_stay_awake: bool
     scrcpy_fullscreen: bool
     scrcpy_extra_args: Sequence[str]
@@ -269,6 +270,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--scrcpy-capture-mode", choices=("auto", "direct", "window"), default="auto", help="Use direct scrcpy video streaming when possible, with the window capture only as fallback.")
     parser.add_argument("--scrcpy-capture-fps", type=int, default=30, help="Target FPS for direct scrcpy capture.")
     parser.add_argument("--scrcpy-video-bit-rate", type=int, default=2_000_000, help="Bitrate for the direct scrcpy video stream.")
+    parser.add_argument("--debug-source", action="store_true", help="Print verbose diagnostics for scrcpy/adb/ffmpeg frame-source setup.")
     parser.add_argument("--scrcpy-no-stay-awake", action="store_true")
     parser.add_argument("--scrcpy-fullscreen", action="store_true")
     parser.add_argument("--scrcpy-extra-args", default="", help="Extra raw arguments passed to scrcpy.")
@@ -321,6 +323,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> AppConfig:
         scrcpy_capture_mode=args.scrcpy_capture_mode,
         scrcpy_capture_fps=max(1, args.scrcpy_capture_fps),
         scrcpy_video_bit_rate=max(100_000, args.scrcpy_video_bit_rate),
+        debug_source=args.debug_source,
         scrcpy_stay_awake=not args.scrcpy_no_stay_awake,
         scrcpy_fullscreen=args.scrcpy_fullscreen,
         scrcpy_extra_args=tuple(x for x in args.scrcpy_extra_args.split() if x),

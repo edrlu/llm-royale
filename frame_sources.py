@@ -6,8 +6,10 @@ import shutil
 import socket
 import struct
 import subprocess
+import sys
 import threading
 import time
+from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -156,7 +158,55 @@ class ScrcpyDirectStreamSource(FrameSource):
         self.frame_width = 0
         self.frame_height = 0
         self.frame_bytes = 0
+        self.server_stderr: deque[str] = deque(maxlen=40)
+        self.ffmpeg_stderr: deque[str] = deque(maxlen=40)
+        self.server_stderr_thread: Optional[threading.Thread] = None
+        self.ffmpeg_stderr_thread: Optional[threading.Thread] = None
         self._start()
+
+    def _debug(self, message: str) -> None:
+        if self.config.debug_source:
+            print(f"[source] {message}", file=sys.stderr, flush=True)
+
+    def _stderr_mode(self):
+        return subprocess.PIPE if self.config.debug_source else subprocess.DEVNULL
+
+    def _tail_text(self, lines: deque[str]) -> str:
+        return "".join(lines).strip()
+
+    def _pump_stderr(self, stream, sink: deque[str], name: str) -> None:
+        if stream is None:
+            return
+        try:
+            while True:
+                line = stream.readline()
+                if not line:
+                    break
+                if isinstance(line, bytes):
+                    text = line.decode("utf-8", errors="replace")
+                else:
+                    text = line
+                sink.append(text)
+                self._debug(f"{name}: {text.rstrip()}")
+        finally:
+            try:
+                stream.close()
+            except Exception:
+                pass
+
+    def _failure_context(self) -> str:
+        parts = []
+        if self.server_proc is not None:
+            parts.append(f"server_rc={self.server_proc.poll()}")
+        if self.ffmpeg_proc is not None:
+            parts.append(f"ffmpeg_rc={self.ffmpeg_proc.poll()}")
+        server_tail = self._tail_text(self.server_stderr)
+        ffmpeg_tail = self._tail_text(self.ffmpeg_stderr)
+        if server_tail:
+            parts.append(f"server_stderr_tail={server_tail}")
+        if ffmpeg_tail:
+            parts.append(f"ffmpeg_stderr_tail={ffmpeg_tail}")
+        return " | ".join(parts)
 
     def _adb_base(self) -> list[str]:
         cmd = [self.config.adb_path]
@@ -165,13 +215,19 @@ class ScrcpyDirectStreamSource(FrameSource):
         return cmd
 
     def _run_adb(self, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(
+        cmd = [*self._adb_base(), *args]
+        self._debug(f"adb cmd: {' '.join(cmd)}")
+        result = subprocess.run(
             [*self._adb_base(), *args],
             check=check,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
         )
+        if self.config.debug_source and (result.stdout.strip() or result.stderr.strip()):
+            self._debug(f"adb stdout: {result.stdout.strip()}")
+            self._debug(f"adb stderr: {result.stderr.strip()}")
+        return result
 
     def _resolve_scrcpy_server_path(self) -> Path:
         env_path = os.environ.get("SCRCPY_SERVER_PATH")
@@ -207,6 +263,11 @@ class ScrcpyDirectStreamSource(FrameSource):
 
         server_path = self._resolve_scrcpy_server_path()
         version = self._resolve_scrcpy_version()
+        self._debug(f"scrcpy={self.config.scrcpy_path}")
+        self._debug(f"scrcpy-server={server_path}")
+        self._debug(f"scrcpy-version={version}")
+        self._debug(f"adb={self.config.adb_path}")
+        self._debug(f"ffmpeg={self.config.ffmpeg_path}")
         remote_server_path = "/data/local/tmp/scrcpy-server.jar"
         self._run_adb("push", str(server_path), remote_server_path)
         self._run_adb("forward", f"tcp:{self.forward_port}", "localabstract:scrcpy")
@@ -230,7 +291,16 @@ class ScrcpyDirectStreamSource(FrameSource):
             "clipboard_autosync=false",
             f"stay_awake={'true' if self.config.scrcpy_stay_awake else 'false'}",
         ]
-        self.server_proc = subprocess.Popen(server_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self._debug(f"server cmd: {' '.join(server_cmd)}")
+        self.server_proc = subprocess.Popen(server_cmd, stdout=subprocess.DEVNULL, stderr=self._stderr_mode(), text=True)
+        if self.config.debug_source:
+            self.server_stderr_thread = threading.Thread(
+                target=self._pump_stderr,
+                args=(self.server_proc.stderr, self.server_stderr, "scrcpy-server"),
+                name="scrcpy-server-stderr",
+                daemon=True,
+            )
+            self.server_stderr_thread.start()
         self.video_socket = self._connect_video_socket()
         self._read_stream_header()
         self._start_decoder()
@@ -244,9 +314,9 @@ class ScrcpyDirectStreamSource(FrameSource):
                 return sock
             except OSError:
                 if self.server_proc and self.server_proc.poll() is not None:
-                    raise RuntimeError("scrcpy server exited before the direct video socket was ready")
+                    raise RuntimeError(f"scrcpy server exited before the direct video socket was ready ({self._failure_context()})")
                 time.sleep(0.1)
-        raise RuntimeError("timed out while connecting to the scrcpy direct video socket")
+        raise RuntimeError(f"timed out while connecting to the scrcpy direct video socket ({self._failure_context()})")
 
     def _recv_exact(self, size: int) -> bytes:
         if self.video_socket is None:
@@ -258,19 +328,23 @@ class ScrcpyDirectStreamSource(FrameSource):
                 break
             chunks.extend(chunk)
         if len(chunks) != size:
-            raise RuntimeError("unexpected end of scrcpy direct video stream")
+            raise RuntimeError(
+                f"unexpected end of scrcpy direct video stream while reading {size} bytes "
+                f"(got {len(chunks)}; {self._failure_context()})"
+            )
         return bytes(chunks)
 
     def _read_stream_header(self) -> None:
         dummy_byte = self._recv_exact(1)
         if dummy_byte != b"\x00":
-            raise RuntimeError("scrcpy direct stream did not return the expected dummy byte")
+            raise RuntimeError(f"scrcpy direct stream did not return the expected dummy byte ({dummy_byte!r}; {self._failure_context()})")
         self._recv_exact(64)
         header = self._recv_exact(12)
         _, width, height = struct.unpack(">III", header)
         self.frame_width = width
         self.frame_height = height
         self.frame_bytes = width * height * 3
+        self._debug(f"direct stream header width={width} height={height}")
 
     def _start_decoder(self) -> None:
         self.ffmpeg_proc = subprocess.Popen(
@@ -298,9 +372,18 @@ class ScrcpyDirectStreamSource(FrameSource):
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
+            stderr=self._stderr_mode(),
+            text=False,
             bufsize=0,
         )
+        if self.config.debug_source:
+            self.ffmpeg_stderr_thread = threading.Thread(
+                target=self._pump_stderr,
+                args=(self.ffmpeg_proc.stderr, self.ffmpeg_stderr, "ffmpeg"),
+                name="ffmpeg-stderr",
+                daemon=True,
+            )
+            self.ffmpeg_stderr_thread.start()
         self.socket_pump_thread = threading.Thread(target=self._pump_socket_to_decoder, name="scrcpy-direct-pump", daemon=True)
         self.socket_pump_thread.start()
 
@@ -314,6 +397,7 @@ class ScrcpyDirectStreamSource(FrameSource):
                     break
                 self.ffmpeg_proc.stdin.write(chunk)
         except OSError:
+            self._debug("socket pump stopped after socket error")
             return
         finally:
             try:
@@ -379,7 +463,7 @@ def build_source(config: AppConfig) -> FrameSource:
             except Exception as exc:
                 if config.scrcpy_capture_mode == "direct":
                     raise
-                print(f"direct scrcpy stream setup failed, falling back to window capture: {exc}")
+                print(f"direct scrcpy stream setup failed, falling back to window capture: {exc}", file=sys.stderr, flush=True)
         return ScrcpyWindowFallbackSource(config)
     if config.source == "video":
         if not config.input_source:
