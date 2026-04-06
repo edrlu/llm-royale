@@ -25,9 +25,9 @@ class RegionBundle:
     arena_for_model_bgr: np.ndarray
     arena_mapping: ArenaMapping
     arena_debug_bgr: np.ndarray
-    hand_cards_bgr: np.ndarray
-    elixir_bgr: np.ndarray
-    timer_hp_bgr: np.ndarray
+    hand_cards_bgr: Optional[np.ndarray]
+    elixir_bgr: Optional[np.ndarray]
+    timer_hp_bgr: Optional[np.ndarray]
     center_text_bgr: Optional[np.ndarray]
 
 
@@ -164,27 +164,46 @@ def _stack_vertical(images: list[np.ndarray]) -> np.ndarray:
     return np.vstack(padded)
 
 
-def extract_regions(frame_bgr: np.ndarray, playback: bool = False) -> RegionBundle:
+def _resize_for_inference(image_bgr: np.ndarray, infer_size: int) -> np.ndarray:
+    height, width = image_bgr.shape[:2]
+    max_dim = max(height, width)
+    if max_dim <= infer_size:
+        return image_bgr
+    scale = infer_size / max_dim
+    target_width = max(1, int(round(width * scale)))
+    target_height = max(1, int(round(height * scale)))
+    return cv2.resize(image_bgr, (target_width, target_height), interpolation=cv2.INTER_AREA)
+
+
+def extract_regions(
+    frame_bgr: np.ndarray,
+    playback: bool = False,
+    *,
+    infer_size: int = 416,
+    include_auxiliary: bool = True,
+) -> RegionBundle:
     frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
     normalized_rgb, (offset_x, offset_y) = _normalize_frame_for_katacr(frame_rgb)
     arena_rgb, arena_params = _safe_process_part(normalized_rgb, 2, playback=playback, resize=True, verbose=True)
-    hand_rgb = _safe_process_part(normalized_rgb, 3, resize=True)
-    timer_rgb = _safe_process_part(normalized_rgb, 1, resize=True)
-    center_parts = _safe_process_part(normalized_rgb, 4, resize=False, allow_missing=True)
+    hand_rgb = _safe_process_part(normalized_rgb, 3, resize=True) if include_auxiliary else None
+    timer_rgb = _safe_process_part(normalized_rgb, 1, resize=True) if include_auxiliary else None
+    center_parts = _safe_process_part(normalized_rgb, 4, resize=False, allow_missing=True) if include_auxiliary else None
 
     arena_bbox = _compute_abs_bbox(normalized_rgb, arena_params)
     x1, y1, x2, y2 = _offset_bbox(arena_bbox, offset_x, offset_y)
-    elixir_rgb = extract_bbox(hand_rgb, *part3_elixir_params)
+    arena_bgr = cv2.cvtColor(arena_rgb, cv2.COLOR_RGB2BGR)
+    arena_for_model_bgr = _resize_for_inference(arena_bgr, infer_size)
+    elixir_rgb = extract_bbox(hand_rgb, *part3_elixir_params) if hand_rgb is not None else None
     center_text_rgb = None
     if isinstance(center_parts, dict) and center_parts:
         center_text_rgb = _stack_vertical([cv2.cvtColor(v, cv2.COLOR_RGB2BGR) for v in center_parts.values()])
 
     return RegionBundle(
-        arena_for_model_bgr=cv2.cvtColor(arena_rgb, cv2.COLOR_RGB2BGR),
-        arena_mapping=ArenaMapping(source_xyxy=(x1, y1, x2, y2), model_shape=arena_rgb.shape[:2]),
-        arena_debug_bgr=cv2.cvtColor(arena_rgb, cv2.COLOR_RGB2BGR),
-        hand_cards_bgr=cv2.cvtColor(hand_rgb, cv2.COLOR_RGB2BGR),
-        elixir_bgr=cv2.cvtColor(elixir_rgb, cv2.COLOR_RGB2BGR),
-        timer_hp_bgr=cv2.cvtColor(timer_rgb, cv2.COLOR_RGB2BGR),
+        arena_for_model_bgr=arena_for_model_bgr,
+        arena_mapping=ArenaMapping(source_xyxy=(x1, y1, x2, y2), model_shape=arena_for_model_bgr.shape[:2]),
+        arena_debug_bgr=arena_bgr,
+        hand_cards_bgr=cv2.cvtColor(hand_rgb, cv2.COLOR_RGB2BGR) if hand_rgb is not None else None,
+        elixir_bgr=cv2.cvtColor(elixir_rgb, cv2.COLOR_RGB2BGR) if elixir_rgb is not None else None,
+        timer_hp_bgr=cv2.cvtColor(timer_rgb, cv2.COLOR_RGB2BGR) if timer_rgb is not None else None,
         center_text_bgr=center_text_rgb,
     )

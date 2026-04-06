@@ -87,14 +87,16 @@ def compose_debug_view(main_bgr: np.ndarray, regions: RegionBundle, include_pane
         return main_bgr
     panel_width = 280
     panel_height = 150
-    panels = [
-        _panel(regions.arena_debug_bgr, "Arena", panel_width, panel_height),
-        _panel(regions.hand_cards_bgr, "Hand Cards", panel_width, panel_height),
-        _panel(regions.elixir_bgr, "Elixir", panel_width, panel_height),
-        _panel(regions.timer_hp_bgr, "Timer / HP", panel_width, panel_height),
+    panel_sources = [
+        ("Arena", regions.arena_debug_bgr),
+        ("Hand Cards", regions.hand_cards_bgr),
+        ("Elixir", regions.elixir_bgr),
+        ("Timer / HP", regions.timer_hp_bgr),
+        ("Center Text", regions.center_text_bgr),
     ]
-    if regions.center_text_bgr is not None:
-        panels.append(_panel(regions.center_text_bgr, "Center Text", panel_width, panel_height))
+    panels = [_panel(image, title, panel_width, panel_height) for title, image in panel_sources if image is not None]
+    if not panels:
+        return main_bgr
     stack = np.vstack(panels)
     if stack.shape[0] < main_bgr.shape[0]:
         pad = main_bgr.shape[0] - stack.shape[0]

@@ -61,10 +61,15 @@ class AppConfig:
     source: str
     input_source: Optional[str]
     weights: tuple[Path, ...]
+    model_mode: str
     device: str
     conf_thres: float
     iou_thres: float
     allowed_class_ids: tuple[int, ...]
+    infer_size: int
+    lightweight: bool
+    latest_frame_only: bool
+    arena_only: bool
     frame_skip: int
     max_fps: float
     display_scale: float
@@ -145,7 +150,7 @@ def parse_class_ids(raw_value: str) -> tuple[int, ...]:
     return class_ids
 
 
-def resolve_weights_paths(raw_weights: Optional[Path], parser: argparse.ArgumentParser) -> tuple[Path, ...]:
+def resolve_weights_paths(raw_weights: Optional[Path], model_mode: str, parser: argparse.ArgumentParser) -> tuple[Path, ...]:
     if raw_weights is not None:
         weights = raw_weights.expanduser().resolve()
         if not weights.exists():
@@ -157,7 +162,7 @@ def resolve_weights_paths(raw_weights: Optional[Path], parser: argparse.Argument
         candidates = _list_pt_files(weights)
         combo = _find_combo_weights(weights)
         if combo:
-            return combo
+            return combo[:1] if model_mode == "single" else combo
         if len(candidates) == 1:
             return candidates
         if len(candidates) > 1:
@@ -178,7 +183,7 @@ def resolve_weights_paths(raw_weights: Optional[Path], parser: argparse.Argument
 
     runs_combo = _find_combo_weights(DEFAULT_RUNS_DIR)
     if runs_combo:
-        return runs_combo
+        return runs_combo[:1] if model_mode == "single" else runs_combo
 
     run_candidates = _list_pt_files(DEFAULT_RUNS_DIR)
     if len(run_candidates) == 1:
@@ -209,6 +214,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help="Path to a KataCR YOLOv8 .pt file or to a directory containing model .pt files.",
     )
+    parser.add_argument("--model-mode", choices=("single", "combo"), default="single", help="Use one detector for lower latency or both combo detectors for higher coverage.")
     parser.add_argument("--device", default="auto", help="Inference device: auto, cpu, cuda, cuda:0, or 0.")
     parser.add_argument("--conf-thres", type=float, default=0.25)
     parser.add_argument("--iou-thres", type=float, default=0.45)
@@ -217,6 +223,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default="default",
         help="Comma-separated class IDs to keep, `default` for the current test allowlist, or `all` for the original full set.",
     )
+    parser.add_argument("--infer-size", type=int, default=416, help="Maximum arena dimension used for inference. Lower values reduce CPU latency.")
+    parser.add_argument("--lightweight", action="store_true", help="Use a CPU-friendly display path with fewer overlays and no debug panels.")
+    parser.add_argument("--latest-frame-only", dest="latest_frame_only", action="store_true", default=True, help="Drop old captured frames and always infer on the newest available frame.")
+    parser.add_argument("--no-latest-frame-only", dest="latest_frame_only", action="store_false", help="Process frames in capture order instead of dropping older frames.")
+    parser.add_argument("--arena-only", action="store_true", help="Display only the arena crop with detections.")
     parser.add_argument("--frame-skip", type=int, default=0, help="Run detection every N+1 frames.")
     parser.add_argument("--max-fps", type=float, default=0.0, help="Optional display-rate cap. 0 disables throttling.")
     parser.add_argument("--display-scale", type=float, default=1.0)
@@ -245,25 +256,32 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def parse_args(argv: Optional[Sequence[str]] = None) -> AppConfig:
     parser = build_arg_parser()
     args = parser.parse_args(argv)
-    weights = resolve_weights_paths(args.weights, parser)
+    weights = resolve_weights_paths(args.weights, args.model_mode, parser)
     dataset_path = args.dataset_path.expanduser().resolve()
     output_dir = args.output_dir.expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
+    lightweight = args.lightweight
+    arena_only = args.arena_only or lightweight
     return AppConfig(
         source=args.source,
         input_source=args.input_source,
         weights=weights,
+        model_mode=args.model_mode,
         device=resolve_device(args.device),
         conf_thres=args.conf_thres,
         iou_thres=args.iou_thres,
         allowed_class_ids=parse_class_ids(args.class_ids),
+        infer_size=max(128, args.infer_size),
+        lightweight=lightweight,
+        latest_frame_only=args.latest_frame_only,
+        arena_only=arena_only,
         frame_skip=max(0, args.frame_skip),
         max_fps=max(0.0, args.max_fps),
         display_scale=max(0.1, args.display_scale),
         window_scale=max(0.5, args.window_scale),
-        no_panels=args.no_panels,
-        no_labels=args.no_labels,
-        no_conf=args.no_conf,
+        no_panels=args.no_panels or lightweight or arena_only,
+        no_labels=args.no_labels or lightweight,
+        no_conf=args.no_conf or lightweight,
         show_belong=args.show_belong,
         dataset_path=dataset_path,
         output=DebugOutputConfig(
