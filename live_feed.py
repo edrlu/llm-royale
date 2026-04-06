@@ -194,7 +194,7 @@ def main() -> int:
     from regions import extract_regions
 
     detector = KataCRDetector(
-        weights=str(config.weights),
+        weights=[str(path) for path in config.weights],
         device=config.device,
         conf_thres=config.conf_thres,
         iou_thres=config.iou_thres,

@@ -8,4 +8,4 @@ if [[ $# -ge 1 && -d "$1" && "$1" != -* ]]; then
   shift
 fi
 
-exec codex --dangerously-bypass-approvals-and-sandbox -C "$target_dir" "$@"
+exec codex --dangerously-bypass-approvals-and-sandbox -C "$target_dir" resume "$@"

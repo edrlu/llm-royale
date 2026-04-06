@@ -14,6 +14,7 @@ KATACR_ROOT = VENDOR_DIR / "KataCR"
 DATASET_ROOT = VENDOR_DIR / "Clash-Royale-Detection-Dataset"
 OUTPUT_ROOT = ROOT / "outputs"
 DEFAULT_WEIGHTS_DIR = ROOT / "weights"
+DEFAULT_RUNS_DIR = ROOT / "runs"
 
 
 def ensure_katacr_environment(dataset_path: Optional[Path] = None) -> None:
@@ -36,7 +37,7 @@ class DebugOutputConfig:
 class AppConfig:
     source: str
     input_source: Optional[str]
-    weights: Path
+    weights: tuple[Path, ...]
     device: str
     conf_thres: float
     iou_thres: float
@@ -69,26 +70,70 @@ def parse_capture_region(value: Optional[str]) -> Optional[tuple[int, int, int, 
     return tuple(parts)  # type: ignore[return-value]
 
 
-def resolve_weights_path(raw_weights: Optional[Path], parser: argparse.ArgumentParser) -> Path:
+def _list_pt_files(directory: Path) -> tuple[Path, ...]:
+    return tuple(sorted(path.resolve() for path in directory.glob("*.pt") if path.is_file()))
+
+
+def _find_combo_weights(directory: Path) -> tuple[Path, ...]:
+    detector1 = tuple(sorted(path.resolve() for path in directory.glob("detector1*.pt") if path.is_file()))
+    detector2 = tuple(sorted(path.resolve() for path in directory.glob("detector2*.pt") if path.is_file()))
+    if len(detector1) == 1 and len(detector2) == 1:
+        return (detector1[0], detector2[0])
+    return ()
+
+
+def _format_weight_options(paths: tuple[Path, ...]) -> str:
+    return "\n".join(f"  - {path}" for path in paths)
+
+
+def resolve_weights_paths(raw_weights: Optional[Path], parser: argparse.ArgumentParser) -> tuple[Path, ...]:
     if raw_weights is not None:
         weights = raw_weights.expanduser().resolve()
         if not weights.exists():
-            parser.error(f"weights file does not exist: {weights}")
-        return weights
+            parser.error(f"weights path does not exist: {weights}")
+        if weights.is_file():
+            return (weights,)
+        if not weights.is_dir():
+            parser.error(f"weights path is not a file or directory: {weights}")
+        candidates = _list_pt_files(weights)
+        combo = _find_combo_weights(weights)
+        if combo:
+            return combo
+        if len(candidates) == 1:
+            return candidates
+        if len(candidates) > 1:
+            parser.error(
+                "multiple weights files found; pass a single `.pt` file or a directory containing exactly one "
+                f"model or one detector1/detector2 pair:\n{_format_weight_options(candidates)}"
+            )
+        parser.error(f"no `.pt` files were found in: {weights}")
 
-    candidates = sorted(path.resolve() for path in DEFAULT_WEIGHTS_DIR.glob("*.pt") if path.is_file())
-    if len(candidates) == 1:
-        return candidates[0]
-    if len(candidates) > 1:
-        options = "\n".join(f"  - {path}" for path in candidates)
+    local_candidates = _list_pt_files(DEFAULT_WEIGHTS_DIR)
+    if len(local_candidates) == 1:
+        return local_candidates
+    if len(local_candidates) > 1:
         parser.error(
             "multiple weights files found in the local weights directory; pass --weights explicitly:\n"
-            f"{options}"
+            f"{_format_weight_options(local_candidates)}"
+        )
+
+    runs_combo = _find_combo_weights(DEFAULT_RUNS_DIR)
+    if runs_combo:
+        return runs_combo
+
+    run_candidates = _list_pt_files(DEFAULT_RUNS_DIR)
+    if len(run_candidates) == 1:
+        return run_candidates
+    if len(run_candidates) > 1:
+        parser.error(
+            "multiple `.pt` files found in the local runs directory; pass --weights explicitly with either a "
+            "single `.pt` file or a directory containing one detector1/detector2 pair:\n"
+            f"{_format_weight_options(run_candidates)}"
         )
 
     parser.error(
-        "no weights file was provided. Either pass --weights /path/to/model.pt or place exactly one "
-        f"`.pt` file in {DEFAULT_WEIGHTS_DIR}"
+        "no weights file was provided. Either pass --weights /path/to/model.pt, pass --weights /path/to/directory, "
+        f"place exactly one `.pt` file in {DEFAULT_WEIGHTS_DIR}, or place a detector1/detector2 pair in {DEFAULT_RUNS_DIR}"
     )
     raise AssertionError("unreachable")
 
@@ -103,7 +148,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--weights",
         type=Path,
         default=None,
-        help="Path to KataCR YOLOv8 .pt weights. If omitted, auto-detect a single .pt file in weights/.",
+        help="Path to a KataCR YOLOv8 .pt file or to a directory containing model .pt files.",
     )
     parser.add_argument("--device", default="cuda", help="Ultralytics device string, for example cuda, cuda:0, or cpu.")
     parser.add_argument("--conf-thres", type=float, default=0.25)
@@ -135,7 +180,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def parse_args(argv: Optional[Sequence[str]] = None) -> AppConfig:
     parser = build_arg_parser()
     args = parser.parse_args(argv)
-    weights = resolve_weights_path(args.weights, parser)
+    weights = resolve_weights_paths(args.weights, parser)
     dataset_path = args.dataset_path.expanduser().resolve()
     output_dir = args.output_dir.expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)

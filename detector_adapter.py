@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
-from typing import Any
+from typing import Any, Sequence
 
 import numpy as np
+import torch
+import torchvision
 from ultralytics.engine.model import Model
 
 from config import ensure_katacr_environment
 
 ensure_katacr_environment()
 
-from katacr.constants.label_list import idx2unit  # noqa: E402
+from katacr.constants.label_list import idx2unit, unit2idx  # noqa: E402
 from katacr.yolov8.custom_model import CRDetectionModel  # noqa: E402
 from katacr.yolov8.custom_predict import CRDetectionPredictor  # noqa: E402
 
@@ -48,27 +50,45 @@ class YOLOCRLive(Model):
 
 
 class KataCRDetector:
-    def __init__(self, weights: str, device: str = "cuda", conf_thres: float = 0.25, iou_thres: float = 0.45) -> None:
+    def __init__(self, weights: Sequence[str], device: str = "cuda", conf_thres: float = 0.25, iou_thres: float = 0.45) -> None:
         self.device = device
         self.conf_thres = conf_thres
         self.iou_thres = iou_thres
-        self.model = YOLOCRLive(weights)
+        self.models = [YOLOCRLive(path) for path in weights]
+
+    def _global_class_id(self, model: YOLOCRLive, class_id: int) -> int:
+        names = getattr(model, "names", None)
+        if isinstance(names, dict) and class_id in names:
+            return int(unit2idx.get(str(names[class_id]), class_id))
+        return class_id
 
     def _class_name(self, class_id: int) -> str:
-        names = getattr(self.model, "names", None)
-        if isinstance(names, dict) and class_id in names:
-            return str(names[class_id])
         return str(idx2unit.get(class_id, class_id))
 
     def predict(self, arena_bgr: np.ndarray) -> list[Detection]:
-        result = self.model.predict(
-            arena_bgr,
-            device=self.device,
-            conf=self.conf_thres,
-            iou=self.iou_thres,
-            verbose=False,
-        )[0]
-        raw = result.get_data()
+        merged_rows: list[torch.Tensor] = []
+        for model in self.models:
+            result = model.predict(
+                arena_bgr,
+                device=self.device,
+                conf=self.conf_thres,
+                iou=self.iou_thres,
+                verbose=False,
+            )[0]
+            boxes = result.orig_boxes
+            if boxes is None or len(boxes) == 0:
+                continue
+            remapped = boxes.clone()
+            for idx in range(len(remapped)):
+                remapped[idx, 5] = self._global_class_id(model, int(remapped[idx, 5]))
+                merged_rows.append(remapped[idx])
+
+        if not merged_rows:
+            return []
+
+        merged = torch.stack(merged_rows)
+        keep = torchvision.ops.nms(merged[:, :4], merged[:, 4], iou_threshold=self.iou_thres)
+        raw = merged[keep].detach().cpu().numpy()
         detections: list[Detection] = []
         for row in raw:
             if len(row) < 7:
