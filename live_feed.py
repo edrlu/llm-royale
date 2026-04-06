@@ -77,7 +77,7 @@ class OpenCVFrameSource(FrameSource):
 class ScrcpyWindowSource(FrameSource):
     def __init__(self, config: AppConfig) -> None:
         self.config = config
-        self.mss = mss.mss()
+        self.mss: Optional[mss.mss] = None
         self.proc: Optional[subprocess.Popen[str]] = None
         self.frame_index = 0
         self.window = None
@@ -134,6 +134,9 @@ class ScrcpyWindowSource(FrameSource):
     def read(self) -> Optional[FramePacket]:
         if self.proc and self.proc.poll() is not None:
             return None
+        if self.mss is None:
+            # mss uses thread-local Windows handles, so it must be constructed on the capture thread.
+            self.mss = mss.mss()
         monitor = self._current_monitor()
         image = np.array(self.mss.grab(monitor), dtype=np.uint8)
         frame = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
@@ -148,7 +151,8 @@ class ScrcpyWindowSource(FrameSource):
                 self.proc.wait(timeout=3)
             except subprocess.TimeoutExpired:
                 self.proc.kill()
-        self.mss.close()
+        if self.mss is not None:
+            self.mss.close()
 
 
 class FrameRelay:
