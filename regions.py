@@ -41,6 +41,11 @@ def _compute_abs_bbox(image: np.ndarray, params: tuple[float, float, float, floa
     return left, top, left + width, top + height
 
 
+def _offset_bbox(bbox: tuple[int, int, int, int], offset_x: int, offset_y: int) -> tuple[int, int, int, int]:
+    x1, y1, x2, y2 = bbox
+    return x1 + offset_x, y1 + offset_y, x2 + offset_x, y2 + offset_y
+
+
 def _ratio_name(image_rgb: np.ndarray) -> str:
     image_ratio = image_rgb.shape[0] / image_rgb.shape[1]
     candidates = {
@@ -61,6 +66,38 @@ def _ratio_name(image_rgb: np.ndarray) -> str:
     if abs(image_ratio - nearest_center) > 0.08:
         raise ValueError(f"unsupported frame ratio {image_ratio:.4f}")
     return nearest_name
+
+
+def _nearest_phone_ratio_name(image_rgb: np.ndarray) -> str:
+    image_ratio = image_rgb.shape[0] / image_rgb.shape[1]
+    candidates = {
+        name: bounds
+        for name, bounds in ratio.items()
+        if name != "part2"
+    }
+    nearest_name, _ = min(
+        candidates.items(),
+        key=lambda item: abs(image_ratio - ((item[1][0] + item[1][1]) / 2.0)),
+    )
+    return nearest_name
+
+
+def _normalize_frame_for_katacr(image_rgb: np.ndarray) -> tuple[np.ndarray, tuple[int, int]]:
+    try:
+        _ratio_name(image_rgb)
+        return image_rgb, (0, 0)
+    except ValueError:
+        target_name = _nearest_phone_ratio_name(image_rgb)
+        lower, upper = ratio[target_name]
+        target_ratio = (lower + upper) / 2.0
+        height, width = image_rgb.shape[:2]
+        target_width = max(1, min(width, int(round(height / target_ratio))))
+        if target_width == width:
+            raise
+        offset_x = max(0, (width - target_width) // 2)
+        cropped = image_rgb[:, offset_x:offset_x + target_width]
+        _ratio_name(cropped)
+        return cropped, (offset_x, 0)
 
 
 def _manual_process_part(image_rgb: np.ndarray, part: int | str, playback: bool = False, resize: bool = True) -> Any:
@@ -129,12 +166,14 @@ def _stack_vertical(images: list[np.ndarray]) -> np.ndarray:
 
 def extract_regions(frame_bgr: np.ndarray, playback: bool = False) -> RegionBundle:
     frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
-    arena_rgb, arena_params = _safe_process_part(frame_rgb, 2, playback=playback, resize=True, verbose=True)
-    hand_rgb = _safe_process_part(frame_rgb, 3, resize=True)
-    timer_rgb = _safe_process_part(frame_rgb, 1, resize=True)
-    center_parts = _safe_process_part(frame_rgb, 4, resize=False, allow_missing=True)
+    normalized_rgb, (offset_x, offset_y) = _normalize_frame_for_katacr(frame_rgb)
+    arena_rgb, arena_params = _safe_process_part(normalized_rgb, 2, playback=playback, resize=True, verbose=True)
+    hand_rgb = _safe_process_part(normalized_rgb, 3, resize=True)
+    timer_rgb = _safe_process_part(normalized_rgb, 1, resize=True)
+    center_parts = _safe_process_part(normalized_rgb, 4, resize=False, allow_missing=True)
 
-    x1, y1, x2, y2 = _compute_abs_bbox(frame_rgb, arena_params)
+    arena_bbox = _compute_abs_bbox(normalized_rgb, arena_params)
+    x1, y1, x2, y2 = _offset_bbox(arena_bbox, offset_x, offset_y)
     elixir_rgb = extract_bbox(hand_rgb, *part3_elixir_params)
     center_text_rgb = None
     if isinstance(center_parts, dict) and center_parts:
