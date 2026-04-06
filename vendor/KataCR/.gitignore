@@ -1,0 +1,9 @@
+__pycache__
+*old*
+test*
+_DEBUG
+logs
+wandb
+runs
+yolov8n.pt
+.VSCodeCounter
