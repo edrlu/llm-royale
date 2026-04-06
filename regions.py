@@ -10,7 +10,7 @@ from config import ensure_katacr_environment
 
 ensure_katacr_environment()
 
-from katacr.build_dataset.constant import part3_elixir_params  # noqa: E402
+from katacr.build_dataset.constant import part3_elixir_params, part_sizes, ratio, split_bbox_params  # noqa: E402
 from katacr.build_dataset.utils.split_part import extract_bbox, process_part  # noqa: E402
 
 
@@ -41,8 +41,80 @@ def _compute_abs_bbox(image: np.ndarray, params: tuple[float, float, float, floa
     return left, top, left + width, top + height
 
 
-def _safe_process_part(image_rgb: np.ndarray, part: int | str, playback: bool = False, resize: bool = True, verbose: bool = False) -> Any:
-    return process_part(image_rgb, part, playback=playback, resize=resize, verbose=verbose)
+def _ratio_name(image_rgb: np.ndarray) -> str:
+    image_ratio = image_rgb.shape[0] / image_rgb.shape[1]
+    candidates = {
+        name: bounds
+        for name, bounds in ratio.items()
+        if name != "part2"
+    }
+    for name, (lower, upper) in candidates.items():
+        if lower <= image_ratio <= upper:
+            return name
+
+    # Window capture can be off by a pixel after scaling; pick the nearest supported profile.
+    nearest_name, nearest_bounds = min(
+        candidates.items(),
+        key=lambda item: abs(image_ratio - ((item[1][0] + item[1][1]) / 2.0)),
+    )
+    nearest_center = (nearest_bounds[0] + nearest_bounds[1]) / 2.0
+    if abs(image_ratio - nearest_center) > 0.08:
+        raise ValueError(f"unsupported frame ratio {image_ratio:.4f}")
+    return nearest_name
+
+
+def _manual_process_part(image_rgb: np.ndarray, part: int | str, playback: bool = False, resize: bool = True) -> Any:
+    part_name = part if isinstance(part, str) else f"part{part}"
+    resize_key = f"part{part}" if isinstance(part, int) else part
+    key = part_name
+    if playback:
+        key += "_playback"
+    key += f"_{_ratio_name(image_rgb)}"
+
+    bbox_params = split_bbox_params.get(key)
+    if bbox_params is None:
+        return None
+
+    target_size = part_sizes.get(resize_key) if resize else None
+    if isinstance(bbox_params, dict):
+        return {name: extract_bbox(image_rgb, *bbox, target_size) for name, bbox in bbox_params.items()}
+    return extract_bbox(image_rgb, *bbox_params, target_size)
+
+
+def _safe_process_part(
+    image_rgb: np.ndarray,
+    part: int | str,
+    playback: bool = False,
+    resize: bool = True,
+    verbose: bool = False,
+    allow_missing: bool = False,
+) -> Any:
+    try:
+        return process_part(image_rgb, part, playback=playback, resize=resize, verbose=verbose)
+    except (KeyError, TypeError):
+        if verbose:
+            manual = _manual_process_part(image_rgb, part, playback=playback, resize=resize)
+            if manual is None:
+                if allow_missing:
+                    return None, None
+                raise
+            part_name = part if isinstance(part, str) else f"part{part}"
+            key = part_name
+            if playback:
+                key += "_playback"
+            key += f"_{_ratio_name(image_rgb)}"
+            bbox_params = split_bbox_params.get(key)
+            if bbox_params is None:
+                if allow_missing:
+                    return None, None
+                raise
+            return manual, bbox_params
+        manual = _manual_process_part(image_rgb, part, playback=playback, resize=resize)
+        if manual is None:
+            if allow_missing:
+                return None
+            raise
+        return manual
 
 
 def _stack_vertical(images: list[np.ndarray]) -> np.ndarray:
@@ -60,7 +132,7 @@ def extract_regions(frame_bgr: np.ndarray, playback: bool = False) -> RegionBund
     arena_rgb, arena_params = _safe_process_part(frame_rgb, 2, playback=playback, resize=True, verbose=True)
     hand_rgb = _safe_process_part(frame_rgb, 3, resize=True)
     timer_rgb = _safe_process_part(frame_rgb, 1, resize=True)
-    center_parts = _safe_process_part(frame_rgb, 4, resize=False)
+    center_parts = _safe_process_part(frame_rgb, 4, resize=False, allow_missing=True)
 
     x1, y1, x2, y2 = _compute_abs_bbox(frame_rgb, arena_params)
     elixir_rgb = extract_bbox(hand_rgb, *part3_elixir_params)
