@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Sequence
@@ -81,9 +82,14 @@ class AppConfig:
     dataset_path: Path
     output: DebugOutputConfig
     scrcpy_path: str
+    adb_path: str
+    ffmpeg_path: str
     scrcpy_serial: Optional[str]
     scrcpy_window_title: str
     scrcpy_max_size: int
+    scrcpy_capture_mode: str
+    scrcpy_capture_fps: int
+    scrcpy_video_bit_rate: int
     scrcpy_stay_awake: bool
     scrcpy_fullscreen: bool
     scrcpy_extra_args: Sequence[str]
@@ -148,6 +154,17 @@ def parse_class_ids(raw_value: str) -> tuple[int, ...]:
         return ALL_CLASS_IDS_BACKUP
     class_ids = tuple(sorted({int(part.strip()) for part in raw_value.split(",") if part.strip()}))
     return class_ids
+
+
+def resolve_tool_path(preferred: str, *fallbacks: str) -> str:
+    candidates = (preferred, *fallbacks)
+    for candidate in candidates:
+        if not candidate:
+            continue
+        resolved = shutil.which(candidate)
+        if resolved:
+            return resolved
+    return preferred
 
 
 def resolve_weights_paths(raw_weights: Optional[Path], model_mode: str, parser: argparse.ArgumentParser) -> tuple[Path, ...]:
@@ -244,9 +261,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--capture-region", type=parse_capture_region, default=None, help="Manual capture region as left,top,width,height.")
     parser.add_argument("--playback-crop", action="store_true", help="Use KataCR playback crop for arena extraction instead of live crop.")
     parser.add_argument("--scrcpy-path", default="scrcpy")
+    parser.add_argument("--adb-path", default="adb")
+    parser.add_argument("--ffmpeg-path", default="ffmpeg")
     parser.add_argument("--scrcpy-serial", default=None, help="ADB serial to pass to scrcpy.")
     parser.add_argument("--scrcpy-window-title", default="llm-royale-scrcpy")
     parser.add_argument("--scrcpy-max-size", type=int, default=1600, help="scrcpy max video size to reduce capture cost.")
+    parser.add_argument("--scrcpy-capture-mode", choices=("auto", "direct", "window"), default="auto", help="Use direct scrcpy video streaming when possible, with the window capture only as fallback.")
+    parser.add_argument("--scrcpy-capture-fps", type=int, default=30, help="Target FPS for direct scrcpy capture.")
+    parser.add_argument("--scrcpy-video-bit-rate", type=int, default=2_000_000, help="Bitrate for the direct scrcpy video stream.")
     parser.add_argument("--scrcpy-no-stay-awake", action="store_true")
     parser.add_argument("--scrcpy-fullscreen", action="store_true")
     parser.add_argument("--scrcpy-extra-args", default="", help="Extra raw arguments passed to scrcpy.")
@@ -290,10 +312,15 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> AppConfig:
             save_annotated=args.save_annotated,
             save_json=args.save_json,
         ),
-        scrcpy_path=args.scrcpy_path,
+        scrcpy_path=resolve_tool_path(args.scrcpy_path),
+        adb_path=resolve_tool_path(args.adb_path, Path(args.scrcpy_path).with_name("adb").as_posix(), Path(args.scrcpy_path).with_name("adb.exe").as_posix()),
+        ffmpeg_path=resolve_tool_path(args.ffmpeg_path),
         scrcpy_serial=args.scrcpy_serial,
         scrcpy_window_title=args.scrcpy_window_title,
         scrcpy_max_size=args.scrcpy_max_size,
+        scrcpy_capture_mode=args.scrcpy_capture_mode,
+        scrcpy_capture_fps=max(1, args.scrcpy_capture_fps),
+        scrcpy_video_bit_rate=max(100_000, args.scrcpy_video_bit_rate),
         scrcpy_stay_awake=not args.scrcpy_no_stay_awake,
         scrcpy_fullscreen=args.scrcpy_fullscreen,
         scrcpy_extra_args=tuple(x for x in args.scrcpy_extra_args.split() if x),

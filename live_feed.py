@@ -1,37 +1,25 @@
 """
 Setup:
 1. Create and populate the virtual environment with `install_dependencies.sh` or `install_dependencies.bat`.
-2. Put KataCR YOLOv8 weights somewhere local, for example `runs/detector1_v0.7.13.pt`.
-3. Make sure `scrcpy` and `adb` are installed and your Android device is visible to `adb devices`.
+2. Ensure `scrcpy`, `adb`, and `ffmpeg` are installed and on `PATH` for the direct live path.
+3. Put KataCR YOLOv8 weights somewhere local, for example `runs/detector1_v0.7.13.pt`.
 4. Run:
-   `python live_feed.py --source scrcpy --model-mode single --device auto --infer-size 416 --latest-frame-only`
+   `python live_feed.py --source scrcpy --model-mode single --lightweight --arena-only --infer-size 320`
 """
 
 from __future__ import annotations
 
 import json
-import shutil
-import subprocess
 import threading
 import time
 from collections import deque
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Optional
 
 import cv2
-import mss
-import numpy as np
 
 from config import AppConfig, ensure_katacr_environment, parse_args
-
-
-@dataclass(slots=True)
-class FramePacket:
-    frame_bgr: np.ndarray
-    source_name: str
-    frame_index: int
-    timestamp: float
+from frame_sources import FramePacket, FrameSource, build_source
 
 
 @dataclass(slots=True)
@@ -43,122 +31,6 @@ class InferenceSnapshot:
     projected_arena_detections: list["Detection"]
     regions: "RegionBundle"
     inference_ms: float
-
-
-class FrameSource:
-    def read(self) -> Optional[FramePacket]:
-        raise NotImplementedError
-
-    def close(self) -> None:
-        return
-
-
-class OpenCVFrameSource(FrameSource):
-    def __init__(self, source: str) -> None:
-        source_value: int | str = int(source) if source.isdigit() else source
-        self.cap = cv2.VideoCapture(source_value)
-        if not self.cap.isOpened():
-            raise RuntimeError(f"unable to open source: {source}")
-        self.frame_index = 0
-        self.source_name = str(source)
-
-    def read(self) -> Optional[FramePacket]:
-        ok, frame = self.cap.read()
-        if not ok:
-            return None
-        packet = FramePacket(frame_bgr=frame, source_name=self.source_name, frame_index=self.frame_index, timestamp=time.time())
-        self.frame_index += 1
-        return packet
-
-    def close(self) -> None:
-        self.cap.release()
-
-
-class ScrcpyWindowSource(FrameSource):
-    def __init__(self, config: AppConfig) -> None:
-        self.config = config
-        self.mss: Optional[mss.mss] = None
-        self.proc: Optional[subprocess.Popen[str]] = None
-        self.frame_index = 0
-        self.window = None
-        self.capture_region = config.capture_region
-        self._start_scrcpy_if_needed()
-        if self.capture_region is None:
-            self.window = self._wait_for_window(config.scrcpy_window_title)
-
-    def _start_scrcpy_if_needed(self) -> None:
-        if not shutil.which(self.config.scrcpy_path):
-            raise RuntimeError("scrcpy executable was not found. Install scrcpy and/or pass --scrcpy-path.")
-        cmd = [self.config.scrcpy_path, "--window-title", self.config.scrcpy_window_title, "--max-size", str(self.config.scrcpy_max_size)]
-        if self.config.scrcpy_serial:
-            cmd.extend(["--serial", self.config.scrcpy_serial])
-        if self.config.scrcpy_stay_awake:
-            cmd.append("--stay-awake")
-        if self.config.scrcpy_fullscreen:
-            cmd.append("--fullscreen")
-        cmd.extend(self.config.scrcpy_extra_args)
-        self.proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    def _wait_for_window(self, title: str, timeout: float = 15.0):
-        import pywinctl as pwc
-
-        deadline = time.time() + timeout
-        while time.time() < deadline:
-            windows = pwc.getWindowsWithTitle(title)
-            windows = [w for w in windows if w.width > 100 and w.height > 100]
-            if windows:
-                return windows[0]
-            if self.proc and self.proc.poll() is not None:
-                raise RuntimeError("scrcpy exited before a capture window appeared.")
-            time.sleep(0.25)
-        raise RuntimeError(f"unable to find scrcpy window titled '{title}'")
-
-    def _current_monitor(self) -> dict[str, int]:
-        if self.capture_region is not None:
-            left, top, width, height = self.capture_region
-            return {"left": left, "top": top, "width": width, "height": height}
-        if self.window is None:
-            raise RuntimeError("scrcpy window capture is not initialized")
-        box = self.window.getClientFrame()
-        left = int(getattr(box, "left"))
-        top = int(getattr(box, "top"))
-        width = getattr(box, "width", None)
-        height = getattr(box, "height", None)
-        if width is None or height is None:
-            right = int(getattr(box, "right"))
-            bottom = int(getattr(box, "bottom"))
-            width = right - left
-            height = bottom - top
-        return {"left": left, "top": top, "width": int(width), "height": int(height)}
-
-    def read(self) -> Optional[FramePacket]:
-        if self.proc and self.proc.poll() is not None:
-            return None
-        if self.mss is None:
-            # mss uses thread-local Windows handles, so it must be constructed on the capture thread.
-            self.mss = mss.mss()
-        monitor = self._current_monitor()
-        if monitor["width"] <= 0 or monitor["height"] <= 0:
-            time.sleep(0.01)
-            return None
-        image = np.array(self.mss.grab(monitor), dtype=np.uint8)
-        if image.size == 0:
-            time.sleep(0.01)
-            return None
-        frame = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
-        packet = FramePacket(frame_bgr=frame, source_name="scrcpy", frame_index=self.frame_index, timestamp=time.time())
-        self.frame_index += 1
-        return packet
-
-    def close(self) -> None:
-        if self.proc and self.proc.poll() is None:
-            self.proc.terminate()
-            try:
-                self.proc.wait(timeout=3)
-            except subprocess.TimeoutExpired:
-                self.proc.kill()
-        if self.mss is not None:
-            self.mss.close()
 
 
 class FrameRelay:
@@ -226,8 +98,6 @@ class CaptureWorker(threading.Thread):
             while not self.stop_event.is_set():
                 packet = self.source.read()
                 if packet is None:
-                    if getattr(self.source, "proc", None) is not None and self.source.proc and self.source.proc.poll() is not None:
-                        break
                     time.sleep(0.005)
                     continue
                 self.relay.push(packet)
@@ -314,8 +184,8 @@ class DebugWriter:
     def write(
         self,
         frame_index: int,
-        raw_bgr: np.ndarray,
-        annotated_bgr: np.ndarray,
+        raw_bgr,
+        annotated_bgr,
         detections: list["Detection"],
         source_name: str,
         timestamp: float,
@@ -335,19 +205,7 @@ class DebugWriter:
             (self.json_dir / f"{stem}.json").write_text(json.dumps(payload, indent=2))
 
 
-def build_source(config: AppConfig) -> FrameSource:
-    if config.source == "scrcpy":
-        return ScrcpyWindowSource(config)
-    if config.source == "video":
-        if not config.input_source:
-            raise RuntimeError("--input is required for --source video")
-        return OpenCVFrameSource(config.input_source)
-    if config.source == "camera":
-        return OpenCVFrameSource(config.input_source or "0")
-    raise RuntimeError(f"unsupported source: {config.source}")
-
-
-def maybe_resize(image: np.ndarray, scale: float) -> np.ndarray:
+def maybe_resize(image, scale: float):
     if abs(scale - 1.0) < 1e-6:
         return image
     return cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)

@@ -28,8 +28,9 @@ It is designed to answer three questions cleanly:
 
 The answer in this repo is:
 
-- `scrcpy` provides the live mirrored phone window
-- Python captures that live window with `mss`
+- `scrcpy` provides the live Android video stream
+- Python ingests that stream directly through the bundled `scrcpy-server` socket and `ffmpeg`
+- the old `mss` window-capture path remains only as a fallback
 - KataCR's YOLOv8-side model components are reused for inference
 - KataCR's `split_part.py` crop conventions are reused for arena and UI regions
 - the app projects arena detections back into the original live frame
@@ -81,6 +82,7 @@ Top-level files added for the live viewer:
 
 - [live_feed.py](/home/alien-cat/Documents/llm-royale/live_feed.py)
 - [config.py](/home/alien-cat/Documents/llm-royale/config.py)
+- [frame_sources.py](/home/alien-cat/Documents/llm-royale/frame_sources.py)
 - [detector_adapter.py](/home/alien-cat/Documents/llm-royale/detector_adapter.py)
 - [regions.py](/home/alien-cat/Documents/llm-royale/regions.py)
 - [overlay.py](/home/alien-cat/Documents/llm-royale/overlay.py)
@@ -113,21 +115,30 @@ The runtime pipeline is:
 
 ### 1. Frame Source
 
-`live_feed.py` defines a small `FrameSource` abstraction.
+`frame_sources.py` defines the `FrameSource` abstraction used by `live_feed.py`.
 
 Implemented sources:
 
-- `ScrcpyWindowSource`
+- `ScrcpyDirectStreamSource`
+- `ScrcpyWindowFallbackSource`
 - `OpenCVFrameSource`
 
-`ScrcpyWindowSource` does this:
+The default `scrcpy` path now does this:
+
+- pushes `scrcpy-server` to the device over `adb`
+- opens the live scrcpy video socket directly
+- strips the initial scrcpy stream header in Python
+- pipes raw H.264 into `ffmpeg`
+- reads decoded BGR frames for OpenCV and inference
+
+If direct stream setup fails, the code can fall back to the old window-capture path:
 
 - launches `scrcpy`
 - waits for the titled scrcpy window if no manual capture region is supplied
 - captures the current client area with `mss`
 - returns frames as BGR NumPy arrays
 
-This keeps the source layer replaceable. If you later want to ingest raw H.264, direct ADB screen capture, or a lower-latency transport, you can replace only the frame-source implementation without touching the detector or overlay pipeline.
+This keeps the source layer replaceable without touching the detector or overlay pipeline.
 
 ### 2. Region Extraction
 
@@ -274,18 +285,15 @@ This is the right split for a later automation architecture:
 
 ### [live_feed.py](/home/alien-cat/Documents/llm-royale/live_feed.py)
 
-Main runtime loop.
+Main runtime loop and worker orchestration.
 
 Responsibilities:
 
 - parse config
-- initialize environment
-- build the detector
 - build the frame source
-- run the main loop
-- handle frame skipping
-- compute FPS
-- display the annotated window
+- launch the capture worker
+- launch the inference worker
+- keep the display loop on the most recent available frame/snapshot
 - optionally write outputs
 
 ### [config.py](/home/alien-cat/Documents/llm-royale/config.py)
@@ -299,6 +307,17 @@ Responsibilities:
 - set `KATACR_DATASET_PATH`
 - expose the CLI interface
 - store runtime settings in dataclasses
+
+### [frame_sources.py](/home/alien-cat/Documents/llm-royale/frame_sources.py)
+
+Frame ingestion layer.
+
+Responsibilities:
+
+- direct scrcpy video stream setup over `adb`
+- `ffmpeg` decode plumbing
+- window-capture fallback
+- local video/camera source support
 
 ### [detector_adapter.py](/home/alien-cat/Documents/llm-royale/detector_adapter.py)
 
@@ -367,12 +386,14 @@ Install these outside Python:
 
 - `scrcpy`
 - `adb` / Android platform-tools
+- `ffmpeg`
 
 Linux note:
 
-- the current scrcpy-window capture path works best under X11
+- the direct scrcpy stream path is preferred
+- the window fallback still works best under X11
 - on Wayland, window enumeration/capture can be inconsistent depending on compositor rules
-- if needed, use `--capture-region` as a manual fallback
+- if needed, use `--scrcpy-capture-mode window --capture-region ...` as a manual fallback
 
 ### Weights
 
@@ -382,14 +403,15 @@ The repo does not include inference weights.
 
 Recommended convention:
 
-- create a local `weights/` directory
-- place your `.pt` file there
-- pass it explicitly via `--weights`
+- place your `.pt` file in `runs/` or `weights/`
+- or pass it explicitly via `--weights`
+- `--model-mode single` uses one detector by default for lower CPU latency
+- `--model-mode combo` uses both detector weights when you want broader coverage
 
 Example:
 
 ```bash
-./run.sh --source scrcpy --weights /absolute/path/to/weights/katacr_live.pt --device cuda
+./run.sh --source scrcpy --model-mode single --weights /absolute/path/to/weights/katacr_live.pt --device auto
 ```
 
 ## Running
@@ -397,13 +419,19 @@ Example:
 ### Linux
 
 ```bash
-./run.sh --source scrcpy --weights /absolute/path/to/weights.pt --device cuda
+./run.sh --source scrcpy --model-mode single --lightweight --arena-only --infer-size 320
 ```
 
 ### Windows
 
 ```bat
-run.bat --source scrcpy --weights C:\path\to\weights.pt --device cuda
+run.bat --source scrcpy --model-mode single --lightweight --arena-only --infer-size 320
+```
+
+### Fast default CPU mode
+
+```bash
+./run.sh --source scrcpy --model-mode single --lightweight --arena-only --infer-size 320 --scrcpy-max-size 900
 ```
 
 ### Test with a local video file
@@ -425,15 +453,22 @@ Core arguments:
 - `--source {scrcpy,video,camera}`
 - `--input`
 - `--weights`
+- `--model-mode {single,combo}`
 - `--device`
 - `--conf-thres`
 - `--iou-thres`
+- `--class-ids`
 
 Performance / display:
 
+- `--infer-size`
+- `--lightweight`
+- `--latest-frame-only`
+- `--arena-only`
 - `--frame-skip`
 - `--max-fps`
 - `--display-scale`
+- `--window-scale`
 - `--no-panels`
 - `--no-labels`
 - `--no-conf`
@@ -451,7 +486,12 @@ Capture / scrcpy:
 - `--capture-region left,top,width,height`
 - `--playback-crop`
 - `--scrcpy-path`
+- `--adb-path`
+- `--ffmpeg-path`
 - `--scrcpy-serial`
+- `--scrcpy-capture-mode`
+- `--scrcpy-capture-fps`
+- `--scrcpy-video-bit-rate`
 - `--scrcpy-window-title`
 - `--scrcpy-max-size`
 - `--scrcpy-no-stay-awake`
@@ -513,29 +553,32 @@ That means:
 
 The app gives you three main speed levers:
 
-- `--frame-skip`
-- `--max-fps`
+- `--infer-size`
+- `--model-mode single`
+- `--lightweight`
 - `--scrcpy-max-size`
 
 Practical guidance:
 
-- start with `--frame-skip 1` or `--frame-skip 2` if your GPU is weak
-- lower `--scrcpy-max-size` if the mirrored window is larger than you need
-- use `--device cpu` only for debugging, not for serious real-time use
-- disable panels with `--no-panels` if you want a simpler display path
+- start with `--model-mode single --lightweight --arena-only`
+- lower `--infer-size` to `320` or `256` if CPU latency is still too high
+- lower `--scrcpy-max-size` if the phone stream is larger than you need
+- keep `--latest-frame-only` enabled for live use so old frames are dropped instead of queued
+- use `--model-mode combo` only when you need the second detector enough to justify the extra CPU cost
 
 The displayed FPS line shows:
 
 - overall viewer FPS
 - last inference time in milliseconds
 - current detection count
+- end-to-end lag estimate in milliseconds
 
 ## Debugging Strategy
 
 If the viewer is not behaving correctly, check in this order:
 
 1. `adb devices` shows the phone
-2. `scrcpy` launches cleanly by itself
+2. `scrcpy --version`, `adb --version`, and `ffmpeg -version` all work
 3. the weights path is correct
 4. the OpenCV window opens
 5. the arena debug crop looks visually correct
@@ -544,8 +587,8 @@ If the viewer is not behaving correctly, check in this order:
 If detections look spatially wrong:
 
 - inspect the arena debug crop first
-- check if scrcpy borders or desktop compositor shadows are being captured
-- use `--capture-region` to manually constrain the screen grab
+- if you are on the fallback window path, check if scrcpy borders or desktop compositor shadows are being captured
+- use `--scrcpy-capture-mode window --capture-region ...` to manually constrain the fallback screen grab
 
 If detections exist but labels are wrong:
 
@@ -613,11 +656,11 @@ This ordering matters. Good automation needs a trustworthy state layer first.
 ```bash
 ./run.sh \
   --source scrcpy \
-  --weights /absolute/path/to/katacr_live.pt \
-  --device cuda \
-  --frame-skip 1 \
-  --show-belong \
-  --save-json
+  --model-mode single \
+  --lightweight \
+  --arena-only \
+  --infer-size 320 \
+  --scrcpy-max-size 900
 ```
 
 ### Video replay debugging
@@ -637,17 +680,17 @@ This ordering matters. Good automation needs a trustworthy state layer first.
 ```bash
 ./run.sh \
   --source scrcpy \
-  --weights /absolute/path/to/katacr_live.pt \
+  --scrcpy-capture-mode window \
   --capture-region 100,80,540,1200 \
-  --device cuda
+  --infer-size 320
 ```
 
 ## Known Limitations
 
 - no bundled weights
-- no direct raw scrcpy stream ingestion yet
-- current scrcpy integration captures the visible window instead of decoding the device stream directly
-- Wayland/Linux desktop setups may require manual capture-region tuning
+- direct scrcpy ingestion depends on `scrcpy-server`, `adb`, and `ffmpeg` all being available locally
+- if direct scrcpy setup fails, the code falls back to the older window-capture path
+- the window fallback may still require manual capture-region tuning on some desktop setups
 - the framework does not yet extract full symbolic state
 - the framework does not yet send actions back to the phone
 
