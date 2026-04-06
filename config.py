@@ -16,6 +16,26 @@ OUTPUT_ROOT = ROOT / "outputs"
 DEFAULT_WEIGHTS_DIR = ROOT / "weights"
 DEFAULT_RUNS_DIR = ROOT / "runs"
 ULTRALYTICS_CONFIG_DIR = ROOT / ".ultralytics"
+ALL_CLASS_IDS_BACKUP = tuple(range(155))
+DEFAULT_ALLOWED_CLASS_IDS = (
+    0,   # king-tower
+    1,   # queen-tower
+    5,   # tower-bar
+    6,   # king-tower-bar
+    7,   # bar
+    8,   # bar-level
+    9,   # clock
+    11,  # text
+    12,  # elixir
+    15,  # skeleton
+    19,  # ice-spirit
+    28,  # ice-golem
+    34,  # the-log
+    40,  # cannon
+    69,  # fireball
+    71,  # musketeer
+    80,  # hog-rider
+)
 
 
 def ensure_katacr_environment(dataset_path: Optional[Path] = None) -> None:
@@ -44,6 +64,7 @@ class AppConfig:
     device: str
     conf_thres: float
     iou_thres: float
+    allowed_class_ids: tuple[int, ...]
     frame_skip: int
     max_fps: float
     display_scale: float
@@ -113,6 +134,16 @@ def resolve_device(raw_device: str) -> str:
     return raw_device
 
 
+def parse_class_ids(raw_value: str) -> tuple[int, ...]:
+    value = (raw_value or "").strip().lower()
+    if not value or value == "default":
+        return DEFAULT_ALLOWED_CLASS_IDS
+    if value == "all":
+        return ALL_CLASS_IDS_BACKUP
+    class_ids = tuple(sorted({int(part.strip()) for part in raw_value.split(",") if part.strip()}))
+    return class_ids
+
+
 def resolve_weights_paths(raw_weights: Optional[Path], parser: argparse.ArgumentParser) -> tuple[Path, ...]:
     if raw_weights is not None:
         weights = raw_weights.expanduser().resolve()
@@ -180,6 +211,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--device", default="auto", help="Inference device: auto, cpu, cuda, cuda:0, or 0.")
     parser.add_argument("--conf-thres", type=float, default=0.25)
     parser.add_argument("--iou-thres", type=float, default=0.45)
+    parser.add_argument(
+        "--class-ids",
+        default="default",
+        help="Comma-separated class IDs to keep, `default` for the current test allowlist, or `all` for the original full set.",
+    )
     parser.add_argument("--frame-skip", type=int, default=0, help="Run detection every N+1 frames.")
     parser.add_argument("--max-fps", type=float, default=0.0, help="Optional display-rate cap. 0 disables throttling.")
     parser.add_argument("--display-scale", type=float, default=1.0)
@@ -218,6 +254,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> AppConfig:
         device=resolve_device(args.device),
         conf_thres=args.conf_thres,
         iou_thres=args.iou_thres,
+        allowed_class_ids=parse_class_ids(args.class_ids),
         frame_skip=max(0, args.frame_skip),
         max_fps=max(0.0, args.max_fps),
         display_scale=max(0.1, args.display_scale),

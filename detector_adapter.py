@@ -51,10 +51,18 @@ class YOLOCRLive(Model):
 
 
 class KataCRDetector:
-    def __init__(self, weights: Sequence[str], device: str = "cpu", conf_thres: float = 0.25, iou_thres: float = 0.45) -> None:
+    def __init__(
+        self,
+        weights: Sequence[str],
+        device: str = "cpu",
+        conf_thres: float = 0.25,
+        iou_thres: float = 0.45,
+        allowed_class_ids: Sequence[int] | None = None,
+    ) -> None:
         self.device = device
         self.conf_thres = conf_thres
         self.iou_thres = iou_thres
+        self.allowed_class_ids = set(allowed_class_ids or ())
         self.models = [YOLOCRLive(path) for path in weights]
 
     def _global_class_id(self, model: YOLOCRLive, class_id: int) -> int:
@@ -98,6 +106,8 @@ class KataCRDetector:
             track_id = int(row[4]) if len(row) == 8 else None
             conf = float(row[-3])
             class_id = int(row[-2])
+            if self.allowed_class_ids and class_id not in self.allowed_class_ids:
+                continue
             belong = int(row[-1]) if len(row) >= 7 else None
             detections.append(
                 Detection(

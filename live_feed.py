@@ -207,6 +207,7 @@ def main() -> int:
         device=config.device,
         conf_thres=config.conf_thres,
         iou_thres=config.iou_thres,
+        allowed_class_ids=config.allowed_class_ids,
     )
     source = build_source(config)
     writer = DebugWriter(config)
