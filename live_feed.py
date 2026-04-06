@@ -213,7 +213,8 @@ def main() -> int:
     writer = DebugWriter(config)
 
     window_name = "Clash Royale Live Vision"
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
+    window_initialized = False
 
     last_projected: list[Detection] = []
     last_det_ms = 0.0
@@ -245,6 +246,11 @@ def main() -> int:
             )
             composed = compose_debug_view(annotated, regions, include_panels=not config.no_panels)
             output_frame = maybe_resize(composed, config.display_scale)
+            if not window_initialized:
+                initial_width = max(960, int(output_frame.shape[1] * config.window_scale))
+                initial_height = max(540, int(output_frame.shape[0] * config.window_scale))
+                cv2.resizeWindow(window_name, initial_width, initial_height)
+                window_initialized = True
             cv2.imshow(window_name, output_frame)
 
             writer.write(packet.frame_index, packet.frame_bgr, output_frame, last_projected, packet.source_name, packet.timestamp)

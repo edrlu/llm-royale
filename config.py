@@ -68,6 +68,7 @@ class AppConfig:
     frame_skip: int
     max_fps: float
     display_scale: float
+    window_scale: float
     no_panels: bool
     no_labels: bool
     no_conf: bool
@@ -219,6 +220,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--frame-skip", type=int, default=0, help="Run detection every N+1 frames.")
     parser.add_argument("--max-fps", type=float, default=0.0, help="Optional display-rate cap. 0 disables throttling.")
     parser.add_argument("--display-scale", type=float, default=1.0)
+    parser.add_argument("--window-scale", type=float, default=1.5, help="Initial OpenCV window size multiplier. Manual resizing remains enabled.")
     parser.add_argument("--no-panels", action="store_true")
     parser.add_argument("--no-labels", action="store_true")
     parser.add_argument("--no-conf", action="store_true")
@@ -258,6 +260,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> AppConfig:
         frame_skip=max(0, args.frame_skip),
         max_fps=max(0.0, args.max_fps),
         display_scale=max(0.1, args.display_scale),
+        window_scale=max(0.5, args.window_scale),
         no_panels=args.no_panels,
         no_labels=args.no_labels,
         no_conf=args.no_conf,
