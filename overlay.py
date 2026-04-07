@@ -51,6 +51,9 @@ def draw_detections(
     show_labels: bool,
     show_conf: bool,
     show_belong: bool,
+    status_line1: Optional[str] = None,
+    status_line2: Optional[str] = None,
+    # Legacy single-string path kept for any callers outside live_feed.py.
     fps_text: Optional[str] = None,
 ) -> np.ndarray:
     canvas = frame_bgr.copy()
@@ -70,8 +73,28 @@ def draw_detections(
             box_top = max(th + 8, y1)
             cv2.rectangle(canvas, (x1, box_top - th - 8), (x1 + tw + 8, box_top), color, -1)
             cv2.putText(canvas, label, (x1 + 4, box_top - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1, cv2.LINE_AA)
-    if fps_text:
-        cv2.putText(canvas, fps_text, (16, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2, cv2.LINE_AA)
+
+    # Two-line status banner appended below the image so it is always fully
+    # visible regardless of the arena crop width.
+    lines = []
+    if status_line1 is not None:
+        lines.append(status_line1)
+    if status_line2 is not None:
+        lines.append(status_line2)
+    if not lines and fps_text:
+        lines.append(fps_text)
+
+    if lines:
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale, thickness = 0.5, 1
+        line_h = 20
+        banner_h = line_h * len(lines) + 8
+        banner = np.zeros((banner_h, canvas.shape[1], 3), dtype=np.uint8)
+        for i, text in enumerate(lines):
+            y = line_h * (i + 1)
+            cv2.putText(banner, text, (4, y), font, scale, (0, 255, 0), thickness, cv2.LINE_AA)
+        canvas = np.vstack([canvas, banner])
+
     return canvas
 
 

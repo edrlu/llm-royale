@@ -267,7 +267,19 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--scrcpy-serial", default=None, help="ADB serial to pass to scrcpy.")
     parser.add_argument("--scrcpy-window-title", default="llm-royale-scrcpy")
     parser.add_argument("--scrcpy-max-size", type=int, default=1600, help="scrcpy max video size to reduce capture cost.")
-    parser.add_argument("--scrcpy-capture-mode", choices=("auto", "direct", "window"), default="auto", help="Use direct scrcpy video streaming when possible, with the window capture only as fallback.")
+    parser.add_argument(
+        "--scrcpy-capture-mode",
+        choices=("auto", "direct", "adb", "window", "screencap"),
+        default="auto",
+        help=(
+            "Capture mode for Android live view. "
+            "'screencap': individual adb screencap calls — zero H264 buffering, lowest latency on the ADB path (~300-600 ms/frame). "
+            "'auto': try scrcpy direct socket first (~50 ms), fall back to adb screenrecord, then window. "
+            "'direct': scrcpy direct socket only. "
+            "'adb': adb screenrecord H264 stream (high latency due to encoder buffering). "
+            "'window': desktop window capture via mss."
+        ),
+    )
     parser.add_argument("--scrcpy-capture-fps", type=int, default=30, help="Target FPS for direct scrcpy capture.")
     parser.add_argument("--scrcpy-video-bit-rate", type=int, default=2_000_000, help="Bitrate for the direct scrcpy video stream.")
     parser.add_argument("--debug-source", action="store_true", help="Print verbose diagnostics for scrcpy/adb/ffmpeg frame-source setup.")
