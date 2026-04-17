@@ -1,0 +1,30 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# macOS
+.DS_Store
+-
+
+# IDE
+.vscode/
+.idea/
+
+# YOLO models and pipeline (large binaries, vendored)
+clash-yolo-pipeline/
+
+# Runtime state
+llm_clasher_state.json
+llm_clasher_decision.json
+
+# Debug output and images
+debug/
+
+# Claude
+.claude/
