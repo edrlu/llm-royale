@@ -218,21 +218,49 @@ class AndroidActionExecutor:
 
         if card in spell_like:
             friendly_positions = []
+            enemy_positions = []
             for group in (
                 snapshot.get("grouped", {}).get("troops", []),
                 snapshot.get("grouped", {}).get("buildings", []),
                 snapshot.get("llm_summary", {}).get("friendly_units_on_enemy_side", []),
+                snapshot.get("llm_summary", {}).get("enemy_units_on_friendly_side", []),
             ):
                 for item in group:
-                    if item.get("owner") not in (None, "friendly"):
-                        continue
                     center = item.get("center_normalized", {}) or {}
-                    fx = center.get("x")
-                    fy = center.get("y")
-                    if fx is None or fy is None:
+                    ix = center.get("x")
+                    iy = center.get("y")
+                    if ix is None or iy is None:
                         continue
-                    friendly_positions.append((float(fx), float(fy), item.get("label")))
+                    owner = item.get("owner")
+                    if owner in (None, "friendly"):
+                        friendly_positions.append((float(ix), float(iy), item.get("label")))
+                    elif owner == "enemy":
+                        enemy_positions.append((float(ix), float(iy), item.get("label")))
 
+            # Also count enemy towers as valid spell targets (chip damage).
+            for det in snapshot.get("detections", []):
+                if det.get("category") == "tower" and det.get("owner") == "enemy":
+                    center = det.get("center_normalized", {}) or {}
+                    tx = center.get("x")
+                    ty = center.get("y")
+                    if tx is not None and ty is not None:
+                        enemy_positions.append((float(tx), float(ty), det.get("label")))
+
+            # Reject spells that don't land near any enemy unit or tower.
+            # This prevents wasting spells on empty space in the middle of
+            # the arena, which the LLM sometimes does.
+            SPELL_TARGET_RADIUS = 0.18
+            near_enemy = any(
+                ((ex - x_norm) ** 2 + (ey - y_norm) ** 2) ** 0.5 <= SPELL_TARGET_RADIUS
+                for ex, ey, _ in enemy_positions
+            )
+            if not near_enemy:
+                return {
+                    "status": "rejected",
+                    "reason": f"{card} targets empty space (no enemy within {SPELL_TARGET_RADIUS} radius)",
+                }
+
+            # Reject spells too close to friendly units (friendly fire).
             for fx, fy, label in friendly_positions:
                 dx = fx - x_norm
                 dy = fy - y_norm

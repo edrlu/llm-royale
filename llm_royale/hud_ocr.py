@@ -171,7 +171,7 @@ def _preprocess_tower_digits(crop: np.ndarray) -> list[np.ndarray]:
 
 
 def _detect_tower_value(frame: np.ndarray, box: tuple) -> dict:
-    name, x1, x2, y1, y2 = box
+    x1, x2, y1, y2 = box
     crop = _crop_norm(frame, x1, x2, y1, y2)
     candidates = []
     for variant in _preprocess_tower_digits(crop):
