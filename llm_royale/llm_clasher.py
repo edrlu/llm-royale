@@ -7,7 +7,6 @@ import argparse
 import json
 import os
 import select
-import re
 import subprocess
 import sys
 import termios
@@ -153,6 +152,49 @@ def wait_for_space() -> None:
                     return
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
+
+def format_ai_decision(decision: dict) -> str:
+    action = str(decision.get("action", "idle")).lower()
+    reason = str(decision.get("reason", "")).strip()
+
+    if action == "place_card":
+        parts = [f"play {decision.get('card', '?')}"]
+        x_norm = decision.get("x_norm")
+        y_norm = decision.get("y_norm")
+        if x_norm is not None and y_norm is not None:
+            parts.append(f"at ({float(x_norm):.2f}, {float(y_norm):.2f})")
+        elif decision.get("x") is not None and decision.get("y") is not None:
+            parts.append(f"at ({float(decision['x']):.0f}, {float(decision['y']):.0f})")
+        if reason:
+            parts.append(f"because {reason}")
+        return " ".join(parts)
+
+    if reason:
+        return f"{action}: {reason}"
+    return action
+
+
+def format_ai_result(result: dict) -> str:
+    status = str(result.get("status", "unknown"))
+    reason = str(result.get("reason", "")).strip()
+
+    if status == "executed":
+        card = result.get("card", "?")
+        slot = result.get("slot", "?")
+        target = result.get("capture_target", {}) or {}
+        x_norm = target.get("x_norm")
+        y_norm = target.get("y_norm")
+        summary = f"executed {card} from slot {slot}"
+        if x_norm is not None and y_norm is not None:
+            summary += f" to ({float(x_norm):.2f}, {float(y_norm):.2f})"
+        if reason:
+            summary += f" | {reason}"
+        return summary
+
+    if reason:
+        return f"{status}: {reason}"
+    return status
 
 
 class CaptureWorker:
@@ -363,7 +405,7 @@ class OpenAIPlanner:
             "You play Hog 2.6. Deck: hog-rider(4), musketeer(4), ice-spirit(1), ice-golem(2), "
             "fireball(4), the-log(2), cannon(3), skeleton(1).\n"
             "Return STRICT JSON ONLY, one of:\n"
-            '{"action":"idle","reason":"..."}\n'
+            '{"action":"idle","card":null,"x_norm":null,"y_norm":null,"reason":"..."}\n'
             '{"action":"place_card","card":"<name>","x_norm":<0..1>,"y_norm":<0..1>,"reason":"..."}\n'
             "\n"
             f"CAPTURE FRAME: {width}x{height}px. Arena = top ~78%; bottom 22% = hand/elixir (OFF-LIMITS).\n"
@@ -422,49 +464,80 @@ class OpenAIPlanner:
         compact = self.build_compact_snapshot(snapshot)
         return json.dumps(compact, separators=(",", ":"))
 
+    def decision_output_schema(self) -> dict:
+        cards = sorted(CARD_COSTS)
+        return {
+            "type": "json_schema",
+            "name": "clash_decision",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "action": {"type": "string", "enum": ["idle", "place_card"]},
+                    "card": {"type": ["string", "null"], "enum": cards + [None]},
+                    "x_norm": {"type": ["number", "null"]},
+                    "y_norm": {"type": ["number", "null"]},
+                    "reason": {"type": "string"},
+                },
+                "required": ["action", "card", "x_norm", "y_norm", "reason"],
+            },
+        }
+
     def _extract_output_text(self, data: dict) -> str:
-        if isinstance(data.get("output_text"), str) and data["output_text"].strip():
-            return data["output_text"].strip()
+        if data.get("status") == "incomplete":
+            reason = (data.get("incomplete_details") or {}).get("reason", "unknown")
+            raise ValueError(f"Model response incomplete: {reason}")
+
+        for item in data.get("output", []):
+            for content in item.get("content", []):
+                if content.get("type") == "refusal":
+                    raise ValueError(f"Model refusal: {content.get('refusal', 'unspecified refusal')}")
+
+        text = data.get("output_text")
+        if isinstance(text, str) and text.strip():
+            return text.strip()
+
         chunks = []
         for item in data.get("output", []):
             for content in item.get("content", []):
+                if content.get("type") != "output_text":
+                    continue
                 text = content.get("text")
                 if isinstance(text, str):
                     chunks.append(text)
-        return "".join(chunks).strip()
-
-    def _extract_json_text(self, data: dict) -> str:
-        text = self._extract_output_text(data)
-        if not text:
+        joined = "".join(chunks).strip()
+        if not joined:
             raise ValueError("Empty model response")
-        # Strip code fences the model sometimes wraps JSON in.
-        stripped = text.strip()
-        if stripped.startswith("```"):
-            stripped = re.sub(r"^```(?:json)?\s*", "", stripped)
-            stripped = re.sub(r"\s*```$", "", stripped)
-        try:
-            json.loads(stripped)
-            return stripped
-        except json.JSONDecodeError:
-            pass
-        # Greedy but non-greedy per line; take the largest balanced-looking object.
-        match = re.search(r"\{.*\}", stripped, flags=re.DOTALL)
-        if not match:
-            raise ValueError(f"Model did not return parseable JSON: {text[:300]}")
-        candidate = match.group(0)
-        json.loads(candidate)
-        return candidate
+        return joined
+
+    def _extract_decision(self, data: dict) -> dict:
+        decision = json.loads(self._extract_output_text(data))
+        action = decision.get("action")
+        if action == "idle":
+            decision["card"] = None
+            decision["x_norm"] = None
+            decision["y_norm"] = None
+        elif action == "place_card":
+            if decision.get("card") is None or decision.get("x_norm") is None or decision.get("y_norm") is None:
+                raise ValueError("place_card decision missing card or coordinates")
+        else:
+            raise ValueError(f"Unsupported action in model response: {action}")
+        return decision
 
     def _responses_create(self, *, instructions: str, input_text: str) -> dict:
         payload = {
             "model": self.model,
             "instructions": instructions,
             "input": input_text,
+            "store": False,
+            "text": {
+                "format": self.decision_output_schema(),
+            },
             "temperature": 0,
-            # 60 was so tight the model could truncate mid-JSON on any reasoning;
-            # 220 gives headroom while still capping cost. The JSON itself is
-            # ~40-60 tokens; the rest is headroom for hidden reasoning tokens.
-            "max_output_tokens": 220,
+            # Structured output lets us tighten the cap; shorter responses
+            # reduce latency in the live control loop.
+            "max_output_tokens": 120,
         }
         start = time.time()
         response = requests.post(
@@ -491,6 +564,9 @@ class OpenAIPlanner:
                 response=response,
             )
         data = response.json()
+        self.last_api_debug["response_status"] = data.get("status")
+        if data.get("incomplete_details"):
+            self.last_api_debug["incomplete_details"] = data["incomplete_details"]
         usage = data.get("usage", {})
         if usage:
             self.last_api_debug["usage"] = usage
@@ -506,7 +582,7 @@ class OpenAIPlanner:
             instructions=self.build_instructions(width, height, decision_latency_sec),
             input_text=self.build_input(snapshot),
         )
-        return json.loads(self._extract_json_text(data))
+        return self._extract_decision(data)
 
 
 def read_snapshot(path: str) -> Optional[dict]:
@@ -714,9 +790,9 @@ def main() -> int:
                     "decision_latency_sec_context": model_decision_latency_sec,
                 })
             )
-            print(f"[AI Action] Decision: {json.dumps(decision)}")
+            print(f"[AI Action] Decision: {format_ai_decision(decision)}")
             result = executor.execute_decision(decision, snapshot)
-            print(f"[AI Action] Result: {json.dumps(result)}")
+            print(f"[AI Action] Result: {format_ai_result(result)}")
             # Record action for LLM context (even idles, so the model knows).
             action_record = {
                 "action": decision.get("action", "idle"),
