@@ -20,6 +20,7 @@ from typing import Optional
 import requests
 
 from .action import AndroidActionExecutor
+from .capture_config import PRINCESS_TOWER_FULL_HP, KING_TOWER_FULL_HP
 from .cycle_tracker import CycleTracker
 
 
@@ -34,27 +35,63 @@ CARD_COSTS = {
     "skeleton": 1,
 }
 
+# Clash Royale match timing (standard 1v1 ladder).
+# Total match length: 5 minutes base.  Double elixir starts at 2:00 remaining
+# (i.e. 3 min into the match), triple elixir at 1:00 remaining (4 min in).
+# Overtime adds 3 more minutes, all at triple.
+SINGLE_ELIXIR_RATE = 2.8   # seconds per 1 elixir
+DOUBLE_ELIXIR_RATE = 1.4
+TRIPLE_ELIXIR_RATE = 0.93
+DOUBLE_ELIXIR_AT_SEC = 180.0   # 3 minutes into the match
+TRIPLE_ELIXIR_AT_SEC = 240.0   # 4 minutes into the match
+
 
 class ElixirClock:
     """
-    Soft elixir tracker used when the vision-based pip detector is unreliable.
+    Soft elixir tracker that auto-switches regen rate based on game phase.
 
-    Clash Royale regen: 1 elixir per 2.8s in single elixir, 1.4s in 2x, 0.93s in 3x.
-    We approximate with a single rate and let the caller bump to 2x after 2 minutes,
-    but even the single-rate estimate is far better than feeding the LLM `null`.
+    Clash Royale regen rates:
+        1x elixir: 1 elixir per 2.8s  (0:00 – 3:00)
+        2x elixir: 1 elixir per 1.4s  (3:00 – 4:00)
+        3x elixir: 1 elixir per 0.93s (4:00+, including overtime)
     """
 
-    def __init__(self, start: float = 5.0, max_elixir: float = 10.0, rate_sec_per_elixir: float = 2.8):
+    def __init__(self, start: float = 5.0, max_elixir: float = 10.0):
         self.value = float(start)
         self.max_elixir = float(max_elixir)
-        self.rate_sec_per_elixir = float(rate_sec_per_elixir)
         self.last_update = time.time()
+        self.game_start: Optional[float] = None
         self.started = False
 
     def start(self) -> None:
         self.value = 5.0
         self.last_update = time.time()
+        self.game_start = time.time()
         self.started = True
+
+    @property
+    def elapsed_sec(self) -> float:
+        if self.game_start is None:
+            return 0.0
+        return time.time() - self.game_start
+
+    @property
+    def game_phase(self) -> str:
+        elapsed = self.elapsed_sec
+        if elapsed >= TRIPLE_ELIXIR_AT_SEC:
+            return "3x"
+        if elapsed >= DOUBLE_ELIXIR_AT_SEC:
+            return "2x"
+        return "1x"
+
+    @property
+    def rate_sec_per_elixir(self) -> float:
+        phase = self.game_phase
+        if phase == "3x":
+            return TRIPLE_ELIXIR_RATE
+        if phase == "2x":
+            return DOUBLE_ELIXIR_RATE
+        return SINGLE_ELIXIR_RATE
 
     def advance(self) -> float:
         now = time.time()
@@ -184,6 +221,7 @@ class OpenAIPlanner:
             raise RuntimeError("OPENAI_API_KEY is required")
         self.last_api_debug = {}
         self.recent_api_latencies_ms = deque(maxlen=8)
+        self.recent_actions: deque = deque(maxlen=4)
 
     def estimate_decision_latency_sec(self, snapshot: dict) -> float:
         capture_latency_ms = float(snapshot.get("capture", {}).get("total_latency_ms", 0.0) or 0.0)
@@ -246,11 +284,59 @@ class OpenAIPlanner:
         if elixir_value is None:
             elixir_value = elixir_inferred.get("count_estimate")
 
+        # --- Tower health as percentage (0-100) ---
+        tower_health_raw = llm_summary.get("tower_health", [])
+        towers = {}
+        for t in tower_health_raw:
+            owner = t.get("owner")  # "friendly" or "enemy"
+            label = t.get("label")  # "queen-tower" or "king-tower"
+            lane = t.get("lane")
+            hp = t.get("hp_estimate")
+            ratio = t.get("health_ratio_estimate")
+
+            if label == "king-tower":
+                key = f"{owner}_king"
+                max_hp = KING_TOWER_FULL_HP
+            elif lane in ("left", "right"):
+                key = f"{owner}_{lane}"
+                max_hp = PRINCESS_TOWER_FULL_HP
+            else:
+                continue
+
+            # Prefer the OCR hp_estimate; fall back to ratio from bar fill.
+            if hp is not None and max_hp > 0:
+                pct = round(hp / max_hp * 100)
+            elif ratio is not None:
+                pct = round(ratio * 100)
+            else:
+                pct = None
+
+            # Keep the first (highest-confidence) entry per key.
+            if key not in towers and pct is not None:
+                towers[key] = pct
+
+        # --- Cycle state (what the LLM can see coming next) ---
+        cycle_state = snapshot.get("cycle_state", {})
+        cycle_info = None
+        if cycle_state:
+            played = list(cycle_state.get("played_history", []))
+            cycle_info = {
+                "last_4_played": played[-4:] if played else [],
+                "next_cycle_candidates": cycle_state.get("next_cycle_candidates", []),
+            }
+
+        # --- Game phase ---
+        game_phase = snapshot.get("_game_phase", "1x")
+
+        # --- Recent action history (what we already did) ---
+        recent = list(self.recent_actions)
+
         return {
             "seq": snapshot.get("sequence"),
             "w": snapshot.get("capture", {}).get("width"),
             "h": snapshot.get("capture", {}).get("height"),
             "decision_latency_sec": decision_latency_sec,
+            "game_phase": game_phase,
             "board": {
                 "river_y_norm": board_reference.get("river_y_norm"),
                 "lane_left_norm": board_reference.get("lane_left_boundary_norm"),
@@ -258,9 +344,12 @@ class OpenAIPlanner:
                 "place_bbox_norm": board_reference.get("troop_placement_bbox_norm"),
             },
             "elixir": elixir_value,
+            "towers": towers,
             "hand": compact_hand,
             "playable_cards": playable_cards,
             "playable_with_cost": playable_with_cost,
+            "cycle": cycle_info,
+            "recent_actions": recent,
             "enemy_on_our_side": pick_threat(llm_summary.get("enemy_units_on_friendly_side", [])),
             "friendly_on_enemy_side": pick_threat(llm_summary.get("friendly_units_on_enemy_side", [])),
             "lane_balance": llm_summary.get("lane_balance", {}),
@@ -270,68 +359,62 @@ class OpenAIPlanner:
         }
 
     def build_instructions(self, width: int, height: int, decision_latency_sec: float) -> str:
-        # Short, directive prompt. You are playing Hog 2.6 on a 1v1 ladder.
-        # The input JSON contains the board state and `playable_cards`.
-        # Return STRICT JSON only, matching one of the two shapes below.
         return (
-            "You play Hog 2.6. Deck: hog-rider, musketeer, ice-spirit, ice-golem, fireball, the-log, cannon, skeleton.\n"
+            "You play Hog 2.6. Deck: hog-rider(4), musketeer(4), ice-spirit(1), ice-golem(2), "
+            "fireball(4), the-log(2), cannon(3), skeleton(1).\n"
             "Return STRICT JSON ONLY, one of:\n"
             '{"action":"idle","reason":"..."}\n'
             '{"action":"place_card","card":"<name>","x_norm":<0..1>,"y_norm":<0..1>,"reason":"..."}\n'
             "\n"
-            f"CAPTURE FRAME: {width} x {height} px. The arena occupies the TOP ~78% of the capture; "
-            "the bottom 22% is your hand + elixir bar and is OFF-LIMITS. "
-            "Use normalized coords (x_norm, y_norm) from `board.place_bbox_norm` and `board.river_y_norm`.\n"
+            f"CAPTURE FRAME: {width}x{height}px. Arena = top ~78%; bottom 22% = hand/elixir (OFF-LIMITS).\n"
+            "Use normalized coords from `board.place_bbox_norm` and `board.river_y_norm`.\n"
             "\n"
-            "KEY Y-COORDS (in capture-frame norm):\n"
-            "  enemy king tower y_norm ~= river_y_norm - 0.33\n"
-            "  enemy princess towers y_norm ~= river_y_norm - 0.20\n"
-            "  bridge / river y_norm = river_y_norm\n"
-            "  friendly princess towers y_norm ~= river_y_norm + 0.20\n"
-            "  friendly king tower y_norm ~= river_y_norm + 0.30\n"
-            "  back-of-arena y_norm ~= river_y_norm + 0.35 (maximum legal troop y)\n"
+            "KEY Y-COORDS:\n"
+            "  enemy king ~= river-0.33, enemy princess ~= river-0.20, bridge = river,\n"
+            "  friendly princess ~= river+0.20, friendly king ~= river+0.30, back ~= river+0.35.\n"
+            "X LANES: left ~0.30, center ~0.50, right ~0.70.\n"
             "\n"
-            "X LANES: left ~0.30, center ~0.50, right ~0.70. Left princess ~0.30, right princess ~0.70.\n"
+            "PLACEMENT RULES:\n"
+            "- Troops/cannon: y_norm >= river_y_norm, inside `board.place_bbox_norm`.\n"
+            "- fireball & the-log: anywhere in arena (y_norm 0.0-0.78).\n"
+            "- x_norm must be in [0.05, 0.95].\n"
+            "- NEVER spell within 0.12 of a friendly unit. Never spell empty space.\n"
             "\n"
-            "LEGAL PLACEMENT:\n"
-            "- Troops/cannon: y_norm MUST be >= river_y_norm. Place INSIDE `board.place_bbox_norm`.\n"
-            "- fireball & the-log (spells): may target anywhere in the arena.\n"
-            "- Never target x_norm outside [0.05, 0.95].\n"
+            "DEFENSIVE DEFAULTS:\n"
+            "- cannon: x=0.50, y=river+0.18 (pulls Hog/Ram/RG to center).\n"
+            "- musketeer: x=0.50, y=river+0.25 (deep, safe behind cannon).\n"
+            "- ice-golem kite: x=opposite lane, y=river+0.15.\n"
+            "- skeletons/ice-spirit: x=threat lane, y=river+0.10.\n"
             "\n"
-            "FRIENDLY-FIRE RULES (CRITICAL):\n"
-            "- Do NOT place fireball or the-log within ~0.12 y_norm of any friendly unit in `friendly_troops`, "
-            "`friendly_buildings`, or `friendly_on_enemy_side`. You will damage your own cards.\n"
-            "- Only spell if the target area contains at least one `enemy_on_our_side` or `top_threats` unit "
-            "(for fireball) OR sits just above an enemy princess tower (for chip).\n"
-            "- Never spell empty space.\n"
+            "OFFENSIVE DEFAULTS:\n"
+            "- hog solo: x=0.30 or 0.70, y=river+0.02 (at bridge).\n"
+            "- the-log chip: x=tower lane, y=river-0.12.\n"
+            "- fireball chip: onto enemy princess tower (only if tower HP is low enough that 2-3 fireballs kill it).\n"
             "\n"
-            "DEFENSIVE PLACEMENTS (use these defaults unless you have a specific reason):\n"
-            "- cannon vs a lane push: x_norm=0.50, y_norm=river_y_norm+0.18 (center pocket, pulls Hog/Ram).\n"
-            "- musketeer behind tank or vs air: x_norm=0.50, y_norm=river_y_norm+0.25 (deep, safe).\n"
-            "- ice-golem kite (swarms + tank): x_norm opposite to threat, y_norm=river_y_norm+0.15.\n"
-            "- skeletons/ice-spirit reset: x_norm at threat's lane, y_norm=river_y_norm+0.10 (in front of princess).\n"
+            "CONTEXT FIELDS:\n"
+            "- `towers`: e.g. {\"enemy_left\":85,\"friendly_king\":100} = HP percentage (0=dead, 100=full).\n"
+            "- `game_phase`: \"1x\", \"2x\", or \"3x\" elixir regen speed.\n"
+            "- `cycle`: last cards played + upcoming cards.\n"
+            "- `recent_actions`: what you already did in the last few seconds — do NOT repeat.\n"
             "\n"
-            "OFFENSIVE PLACEMENTS:\n"
-            "- hog solo: x_norm 0.30 or 0.70, y_norm=river_y_norm+0.02 (at the bridge).\n"
-            "- hog + ice-golem tank: ice-golem first at y_norm=river_y_norm+0.25 same lane, THEN hog.\n"
-            "- the-log: roll over enemy princess at x_norm same as the tower, y_norm=river_y_norm-0.12.\n"
-            "- fireball: center of an enemy blob on our side OR onto enemy princess tower if chip wins.\n"
-            "\n"
-            "DECISION LOGIC (in order):\n"
-            "1. If `enemy_on_our_side` is non-empty: defend with the cheapest sufficient card. "
-            "Hog/Ram/RoyalGiant need cannon pull. Swarms need log or ice-spirit. Tanks need cannon+musketeer+kite.\n"
-            "2. If `elixir` < 4 and no threat: IDLE. Never spam cheap cards at low elixir.\n"
-            "3. If `friendly_on_enemy_side` exists AND `elixir` >= 6: extend the push (support with ice-golem/ice-spirit/musketeer).\n"
-            "4. If `elixir` >= 9 AND no threat AND no friendly push: start a fresh hog push opposite to last enemy investment.\n"
-            "5. Otherwise IDLE.\n"
+            "DECISION LOGIC (in priority order):\n"
+            "1. DEFEND: If `enemy_on_our_side` non-empty → play cheapest sufficient counter, "
+            "even at low elixir. Hog/Ram/RG → cannon pull. Swarms → log/ice-spirit. Tanks → cannon+musk.\n"
+            "2. COUNTER-PUSH: After defending with surviving troops on the board, immediately hog the "
+            "OPPOSITE lane while the opponent is low on elixir. This is Hog 2.6's core win condition.\n"
+            "3. SUPPORT PUSH: If `friendly_on_enemy_side` exists AND elixir >= 5 → support with ice-spirit/ice-golem/musketeer.\n"
+            "4. START PUSH: If elixir >= 7 AND no threat → hog at bridge, opposite last enemy investment.\n"
+            "   In 2x/3x elixir, push at elixir >= 6. At elixir >= 9, you MUST play something (leaking is always wrong).\n"
+            "5. CHIP: If enemy tower in `towers` <= 20% and fireball/log in hand → spell to finish it.\n"
+            "6. IDLE: Otherwise wait.\n"
             "\n"
             f"CONTROL LAG: ~{decision_latency_sec:.1f}s from snapshot to tap. Lead moving targets.\n"
             "\n"
             "HARD RULES:\n"
-            "- You MAY only play cards in `playable_cards`. If empty, IDLE.\n"
-            "- If a hand slot label is null, treat it as an unaffordable hidden card, not an empty slot.\n"
-            "- Respect `elixir` — never try to play a card costing more than `elixir` in `playable_with_cost`.\n"
-            "- Do NOT cycle (ice-spirit/skeleton) unless `elixir` >= 9. Cycling at low elixir is a waste.\n"
+            "- ONLY play cards in `playable_cards`. If empty → IDLE.\n"
+            "- null hand slot = unaffordable hidden card, not empty.\n"
+            "- Never play a card costing more than current `elixir`.\n"
+            "- Check `recent_actions` — do NOT double-play the same card within 3s unless defending.\n"
             "- Keep `reason` <= 8 words."
         )
 
@@ -377,6 +460,7 @@ class OpenAIPlanner:
             "model": self.model,
             "instructions": instructions,
             "input": input_text,
+            "temperature": 0,
             # 60 was so tight the model could truncate mid-JSON on any reasoning;
             # 220 gives headroom while still capping cost. The JSON itself is
             # ~40-60 tokens; the rest is headroom for hidden reasoning tokens.
@@ -590,6 +674,9 @@ def main() -> int:
             blended_elixir = elixir_clock.estimate(observed_elixir)
             snapshot.setdefault("elixir_inferred", {})["blended_estimate"] = blended_elixir
 
+            # Inject game phase so the LLM knows about 2x/3x elixir.
+            snapshot["_game_phase"] = elixir_clock.game_phase
+
             last_sequence = sequence
             signature = state_signature(snapshot)
             if signature == last_signature:
@@ -630,6 +717,16 @@ def main() -> int:
             print(f"[AI Action] Decision: {json.dumps(decision)}")
             result = executor.execute_decision(decision, snapshot)
             print(f"[AI Action] Result: {json.dumps(result)}")
+            # Record action for LLM context (even idles, so the model knows).
+            action_record = {
+                "action": decision.get("action", "idle"),
+                "card": decision.get("card"),
+                "t": round(now, 1),
+            }
+            if decision.get("action") == "idle":
+                action_record.pop("card", None)
+            planner.recent_actions.append(action_record)
+
             if result.get("status") == "executed" and result.get("card"):
                 cycle_tracker.record_play(result["card"])
                 elixir_clock.spend(result["card"])
