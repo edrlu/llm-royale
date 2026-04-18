@@ -326,7 +326,7 @@ class OpenAIPlanner:
         if elixir_value is None:
             elixir_value = elixir_inferred.get("count_estimate")
 
-        # --- Tower health as percentage (0-100) ---
+        # --- Tower health as percentage (0-100) WITH positions ---
         tower_health_raw = llm_summary.get("tower_health", [])
         towers = {}
         for t in tower_health_raw:
@@ -355,7 +355,27 @@ class OpenAIPlanner:
 
             # Keep the first (highest-confidence) entry per key.
             if key not in towers and pct is not None:
-                towers[key] = pct
+                towers[key] = {"hp": pct}
+
+        # Attach tower positions from grouped detections (these have center_normalized).
+        tower_detections = snapshot.get("grouped", {}).get("towers", [])
+        for td in tower_detections:
+            td_owner = td.get("owner")
+            td_label = td.get("label")
+            td_lane = td.get("lane")
+            cn = td.get("center_normalized", {})
+            if td_label == "king-tower":
+                td_key = f"{td_owner}_king"
+            elif td_lane in ("left", "right"):
+                td_key = f"{td_owner}_{td_lane}"
+            else:
+                continue
+            if td_key in towers:
+                towers[td_key]["x"] = cn.get("x")
+                towers[td_key]["y"] = cn.get("y")
+            elif cn.get("x") is not None:
+                # Tower detected but no HP — still include position.
+                towers[td_key] = {"hp": None, "x": cn.get("x"), "y": cn.get("y")}
 
         # --- Cycle state (what the LLM can see coming next) ---
         cycle_state = snapshot.get("cycle_state", {})
@@ -400,63 +420,81 @@ class OpenAIPlanner:
             "friendly_buildings": pick(snapshot.get("grouped", {}).get("buildings", [])),
         }
 
-    def build_instructions(self, width: int, height: int, decision_latency_sec: float) -> str:
+    def build_instructions(self, width: int, height: int, decision_latency_sec: float, river_y: float = 0.5) -> str:
+        R = river_y
         return (
-            "You play Hog 2.6. Deck: hog-rider(4), musketeer(4), ice-spirit(1), ice-golem(2), "
-            "fireball(4), the-log(2), cannon(3), skeleton(1).\n"
+            "You are a top-ladder Hog 2.6 player. Deck: hog-rider(4), musketeer(4), "
+            "ice-spirit(1), ice-golem(2), fireball(4), the-log(2), cannon(3), skeleton(1).\n"
             "Return STRICT JSON ONLY, one of:\n"
-            '{"action":"idle","card":null,"x_norm":null,"y_norm":null,"reason":"..."}\n'
+            '{"action":"idle","reason":"..."}\n'
             '{"action":"place_card","card":"<name>","x_norm":<0..1>,"y_norm":<0..1>,"reason":"..."}\n'
             "\n"
-            f"CAPTURE FRAME: {width}x{height}px. Arena = top ~78%; bottom 22% = hand/elixir (OFF-LIMITS).\n"
-            "Use normalized coords from `board.place_bbox_norm` and `board.river_y_norm`.\n"
+            "COORDINATE SYSTEM:\n"
+            f"Normalized 0-1. Top of screen = 0.0 (enemy king). River/bridge ≈ {R:.2f}.\n"
+            f"Your side = y > {R:.2f}. Enemy side = y < {R:.2f}. Arena ends ~0.78 (below is hand bar).\n"
+            "Left lane x≈0.30, right lane x≈0.70. Center x≈0.50.\n"
             "\n"
-            "KEY Y-COORDS:\n"
-            "  enemy king ~= river-0.33, enemy princess ~= river-0.20, bridge = river,\n"
-            "  friendly princess ~= river+0.20, friendly king ~= river+0.30, back ~= river+0.35.\n"
-            "X LANES: left ~0.30, center ~0.50, right ~0.70.\n"
+            "LANDMARK POSITIONS (approximate y_norm):\n"
+            "- Enemy king tower:      y≈0.12, x≈0.50\n"
+            "- Enemy princess towers:  y≈0.26, left x≈0.33, right x≈0.67\n"
+            f"- Bridge/river:           y≈{R:.2f}\n"
+            "- YOUR princess towers:   y≈0.64, left x≈0.33, right x≈0.67\n"
+            "- YOUR king tower:        y≈0.76, x≈0.50\n"
+            "The `towers` dict has LIVE detected positions (x,y) — use those when available, "
+            "fall back to these landmarks only if a tower is missing from detection.\n"
             "\n"
-            "PLACEMENT RULES:\n"
-            "- Troops/cannon: y_norm >= river_y_norm, inside `board.place_bbox_norm`.\n"
-            "- fireball & the-log: anywhere in arena (y_norm 0.0-0.78).\n"
-            "- x_norm must be in [0.05, 0.95].\n"
-            "- NEVER spell within 0.12 of a friendly unit. Never spell empty space.\n"
+            "HOG 2.6 PRO STRATEGY:\n"
             "\n"
-            "DEFENSIVE DEFAULTS:\n"
-            "- cannon: x=0.50, y=river+0.18 (pulls Hog/Ram/RG to center).\n"
-            "- musketeer: x=0.50, y=river+0.25 (deep, safe behind cannon).\n"
-            "- ice-golem kite: x=opposite lane, y=river+0.15.\n"
-            "- skeletons/ice-spirit: x=threat lane, y=river+0.10.\n"
+            "DEFENSE:\n"
+            "- Cannon: place it between your two princess towers (x≈0.50, y between your princess towers "
+            "and river). A 4-3 plant (4 tiles from river, 3 tiles from center) pulls hog to cannon "
+            "with both princess towers in range. Check `towers` for your princess tower y-coords.\n"
+            "- Musketeer deep behind the cannon — she outranges most troops and stays alive to counter-push.\n"
+            "- Ice-golem kites melee units to the opposite lane. Drop it where you want the enemy to walk.\n"
+            "- Skeletons surround high-DPS single-target units (mini pekka, prince, pekka). Place on top of them.\n"
+            "- Ice-spirit freezes and resets. Great vs inferno tower, sparky, prince charge.\n"
+            "- Log clears swarms (skeleton army, goblin barrel, princess). Roll it through them.\n"
             "\n"
-            "OFFENSIVE DEFAULTS:\n"
-            "- hog solo: x=0.30 or 0.70, y=river+0.02 (at bridge).\n"
-            "- the-log chip: x=tower lane, y=river-0.12.\n"
-            "- fireball chip: onto enemy princess tower (only if tower HP is low enough that 2-3 fireballs kill it).\n"
+            "OFFENSE — Hog 2.6 wins by OUTCYCLING:\n"
+            "- Hog at the bridge (y≈river_y from `board`) in the lane the opponent just defended. They can't defend both.\n"
+            "- After defending, IMMEDIATELY counter-push hog opposite lane. This is the #1 win condition.\n"
+            "- Ice-spirit or ice-golem in front of hog tanks one hit and lets hog get extra swings.\n"
+            "- Fireball + log chip on a low-HP princess tower to finish it off.\n"
+            "- Fireball value: hit enemy troops clustered near their tower to get tower chip + troop damage.\n"
+            "- In 2x/3x elixir be much more aggressive — cycle hog faster, pressure both lanes.\n"
             "\n"
-            "CONTEXT FIELDS:\n"
-            "- `towers`: e.g. {\"enemy_left\":85,\"friendly_king\":100} = HP percentage (0=dead, 100=full).\n"
-            "- `game_phase`: \"1x\", \"2x\", or \"3x\" elixir regen speed.\n"
-            "- `cycle`: last cards played + upcoming cards.\n"
-            "- `recent_actions`: what you already did in the last few seconds — do NOT repeat.\n"
+            "SPELL USAGE:\n"
+            "- Log: aim at the enemy tower's x,y from `towers` to chip it, or at enemy troops' x_norm/y_norm. "
+            "Log rolls DOWNWARD from where you place it — place it slightly ABOVE (lower y_norm) your target.\n"
+            "- Fireball: aim at the enemy unit's x_norm/y_norm position, or at the tower's x,y for chip. "
+            "Fireball hits a circle around the target point.\n"
+            "- NEVER throw spells at empty space. Always target something visible in the snapshot.\n"
             "\n"
-            "DECISION LOGIC (in priority order):\n"
-            "1. DEFEND: If `enemy_on_our_side` non-empty → play cheapest sufficient counter, "
-            "even at low elixir. Hog/Ram/RG → cannon pull. Swarms → log/ice-spirit. Tanks → cannon+musk.\n"
-            "2. COUNTER-PUSH: After defending with surviving troops on the board, immediately hog the "
-            "OPPOSITE lane while the opponent is low on elixir. This is Hog 2.6's core win condition.\n"
-            "3. SUPPORT PUSH: If `friendly_on_enemy_side` exists AND elixir >= 5 → support with ice-spirit/ice-golem/musketeer.\n"
-            "4. START PUSH: If elixir >= 7 AND no threat → hog at bridge, opposite last enemy investment.\n"
-            "   In 2x/3x elixir, push at elixir >= 6. At elixir >= 9, you MUST play something (leaking is always wrong).\n"
-            "5. CHIP: If enemy tower in `towers` <= 20% and fireball/log in hand → spell to finish it.\n"
-            "6. IDLE: Otherwise wait.\n"
+            "DATA FIELDS:\n"
+            "- `enemy_on_our_side`: enemies that crossed the river — DEFEND THESE FIRST.\n"
+            "- `friendly_on_enemy_side` / `friendly_troops`: your surviving units.\n"
+            "- `towers`: each tower has `hp` (0-100%), `x` and `y` (detected position). "
+            "Use tower x/y to aim spells AT the tower. Use tower positions to place cannon between your princess towers.\n"
+            "- `game_phase`: 1x/2x/3x elixir speed. Push more aggressively in 2x/3x.\n"
+            "- `cycle`: recent plays + upcoming cards. Plan your next combo.\n"
+            "- `recent_actions`: what you just did — don't repeat the same card back-to-back.\n"
+            "- Unit positions have x_norm/y_norm — use these coords when targeting spells on them.\n"
             "\n"
-            f"CONTROL LAG: ~{decision_latency_sec:.1f}s from snapshot to tap. Lead moving targets.\n"
+            "PRIORITIES:\n"
+            "1. Defend enemy pushes — always. Use the cheapest card that works.\n"
+            "2. Counter-push with hog after defending. Opposite lane.\n"
+            "3. Support existing pushes with cheap cards behind your hog.\n"
+            "4. Start hog push when you have elixir advantage and no threat.\n"
+            "5. Spell-chip a low tower if fireball/log can finish it.\n"
+            "6. At 9+ elixir, play something cheap in the back to avoid leaking.\n"
+            "7. Otherwise IDLE — patience wins. Don't overcommit.\n"
             "\n"
-            "HARD RULES:\n"
+            f"CONTROL LAG: ~{decision_latency_sec:.1f}s. Lead moving targets slightly.\n"
+            "\n"
+            "RULES:\n"
             "- ONLY play cards in `playable_cards`. If empty → IDLE.\n"
-            "- null hand slot = unaffordable hidden card, not empty.\n"
-            "- Never play a card costing more than current `elixir`.\n"
-            "- Check `recent_actions` — do NOT double-play the same card within 3s unless defending.\n"
+            "- null hand slot = hidden card, not empty.\n"
+            "- Never play a card you can't afford (check `elixir` vs `playable_with_cost`).\n"
             "- Keep `reason` <= 8 words."
         )
 
@@ -578,8 +616,9 @@ class OpenAIPlanner:
         width = compact["w"]
         height = compact["h"]
         decision_latency_sec = compact["decision_latency_sec"]
+        river_y = float(compact["board"].get("river_y_norm") or 0.5)
         data = self._responses_create(
-            instructions=self.build_instructions(width, height, decision_latency_sec),
+            instructions=self.build_instructions(width, height, decision_latency_sec, river_y),
             input_text=self.build_input(snapshot),
         )
         return self._extract_decision(data)

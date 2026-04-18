@@ -180,95 +180,11 @@ class AndroidActionExecutor:
         x_norm = x / capture_width
         y_norm = y / capture_height
 
-        # Use the per-frame river line when available; the old hard 0.5 cutoff
-        # was rejecting legitimate placements on boards where the river isn't
-        # centered in the capture.
-        board_ref = (snapshot.get("llm_summary", {}) or {}).get("board_reference", {}) or {}
-        river_y_norm = float(board_ref.get("river_y_norm") or 0.5)
-        spell_like = {"fireball", "the-log"}
-        if card not in spell_like and y_norm < river_y_norm - 0.01:
-            return {
-                "status": "rejected",
-                "reason": f"{card} cannot be placed on the enemy side (y_norm={y_norm:.3f} < river {river_y_norm:.3f})",
-            }
-
-        # Runtime safety rails for placements the prompt should avoid but the
-        # model may still occasionally emit under noisy vision.
-        if card == "cannon" and y_norm < river_y_norm + 0.12:
-            return {
-                "status": "rejected",
-                "reason": f"cannon placement too shallow (y_norm={y_norm:.3f}); would land near bridge",
-            }
-
-        # Clamp placement into the legal troop-placement bbox so small model
-        # misaims (e.g. placing off-arena) still land in bounds.
-        place_bbox = board_ref.get("troop_placement_bbox_norm") or {
-            "x1": 0.02, "y1": river_y_norm, "x2": 0.98, "y2": 0.77,
-        }
-        if card in spell_like:
-            # Spells may target anywhere inside the arena.
-            arena = board_ref.get("arena_bbox_norm") or {"x1": 0.0, "y1": 0.0, "x2": 1.0, "y2": 0.78}
-            x_norm = min(max(x_norm, arena["x1"] + 0.01), arena["x2"] - 0.01)
-            y_norm = min(max(y_norm, arena["y1"] + 0.01), arena["y2"] - 0.01)
-        else:
-            x_norm = min(max(x_norm, place_bbox["x1"] + 0.01), place_bbox["x2"] - 0.01)
-            y_norm = min(max(y_norm, place_bbox["y1"]), place_bbox["y2"] - 0.01)
+        # Only hard clamp: keep coords inside the capture frame.
+        x_norm = min(max(x_norm, 0.01), 0.99)
+        y_norm = min(max(y_norm, 0.01), 0.99)
         x = x_norm * capture_width
         y = y_norm * capture_height
-
-        if card in spell_like:
-            friendly_positions = []
-            enemy_positions = []
-            for group in (
-                snapshot.get("grouped", {}).get("troops", []),
-                snapshot.get("grouped", {}).get("buildings", []),
-                snapshot.get("llm_summary", {}).get("friendly_units_on_enemy_side", []),
-                snapshot.get("llm_summary", {}).get("enemy_units_on_friendly_side", []),
-            ):
-                for item in group:
-                    center = item.get("center_normalized", {}) or {}
-                    ix = center.get("x")
-                    iy = center.get("y")
-                    if ix is None or iy is None:
-                        continue
-                    owner = item.get("owner")
-                    if owner in (None, "friendly"):
-                        friendly_positions.append((float(ix), float(iy), item.get("label")))
-                    elif owner == "enemy":
-                        enemy_positions.append((float(ix), float(iy), item.get("label")))
-
-            # Also count enemy towers as valid spell targets (chip damage).
-            for det in snapshot.get("detections", []):
-                if det.get("category") == "tower" and det.get("owner") == "enemy":
-                    center = det.get("center_normalized", {}) or {}
-                    tx = center.get("x")
-                    ty = center.get("y")
-                    if tx is not None and ty is not None:
-                        enemy_positions.append((float(tx), float(ty), det.get("label")))
-
-            # Reject spells that don't land near any enemy unit or tower.
-            # This prevents wasting spells on empty space in the middle of
-            # the arena, which the LLM sometimes does.
-            SPELL_TARGET_RADIUS = 0.18
-            near_enemy = any(
-                ((ex - x_norm) ** 2 + (ey - y_norm) ** 2) ** 0.5 <= SPELL_TARGET_RADIUS
-                for ex, ey, _ in enemy_positions
-            )
-            if not near_enemy:
-                return {
-                    "status": "rejected",
-                    "reason": f"{card} targets empty space (no enemy within {SPELL_TARGET_RADIUS} radius)",
-                }
-
-            # Reject spells too close to friendly units (friendly fire).
-            for fx, fy, label in friendly_positions:
-                dx = fx - x_norm
-                dy = fy - y_norm
-                if (dx * dx + dy * dy) ** 0.5 <= 0.12:
-                    return {
-                        "status": "rejected",
-                        "reason": f"{card} target too close to friendly {label}",
-                    }
 
         hand_slots = snapshot.get("hand_cards_inferred", {}).get("slots", [])
         selected_slot = next((slot for slot in hand_slots if slot.get("label") == card), None)
