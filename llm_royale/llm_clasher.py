@@ -60,7 +60,16 @@ MATCH_END_CONFIRM_SNAPSHOTS = 6
 # accepted the card. Verification by detection cannot answer that on its own:
 # spells leave no unit behind, and small troops are easy for the detector to
 # miss entirely.
+#
+# Comparing consecutive snapshots is too coarse to answer it either — elixir
+# regenerates between them, the reading the planner acted on is several hundred
+# ms stale, and other placements land in between; that produced impossible
+# figures like a 2-cost card apparently costing 5. The --verify-elixir mode
+# instead reads the bar directly either side of the swipe, which is exact but
+# adds this settle time to every placement, so it is a diagnostic and not the
+# default.
 ELIXIR_DEBIT_TOLERANCE = 0.6
+ELIXIR_SETTLE_AFTER_PLAY_SEC = 0.55
 
 
 class TowerHealthTracker:
@@ -813,6 +822,11 @@ def main() -> int:
     parser.add_argument("--python-bin", default=sys.executable)
     parser.add_argument("--cooldown-sec", type=float, default=0.5)
     parser.add_argument(
+        "--verify-elixir", action="store_true",
+        help="Read the elixir bar either side of every placement to confirm the "
+             "game charged for it. Precise, but adds ~0.55s per placement",
+    )
+    parser.add_argument(
         "--record", metavar="PATH", default=None,
         help="Record the mirrored screen to this mp4 on a background thread",
     )
@@ -859,6 +873,22 @@ def main() -> int:
         wait_for_space()
 
     stopper = Stopper(args.stop_file)
+
+    elixir_probe = None
+    if args.verify_elixir:
+        from .hud_ocr import count_elixir_pips
+        from .mirror_capture import MirrorFrameSource
+
+        probe_source = MirrorFrameSource()
+        probe_source.probe()
+
+        def elixir_probe():
+            frame = probe_source.grab_once()
+            if frame is None:
+                return None
+            return count_elixir_pips(frame).get("count")
+
+        print("[INFO] elixir verification on (adds latency to each placement)")
 
     recorder = None
     # Shared with the recorder thread: the newest snapshot and decision, so the
@@ -915,9 +945,6 @@ def main() -> int:
     was_in_battle = False
     left_battle_ts = None
     out_of_battle_streak = 0
-    last_played_card = None
-    last_played_ts = 0.0
-    pending_elixir_check = None
     try:
         while True:
             if stopper.should_stop():
@@ -939,19 +966,6 @@ def main() -> int:
 
             latest["snapshot"] = snapshot
 
-            if pending_elixir_check is not None and sequence > pending_elixir_check["sequence"]:
-                before = pending_elixir_check["before"]
-                after = (snapshot.get("elixir_inferred", {}) or {}).get("count_estimate")
-                cost = pending_elixir_check["cost"]
-                if isinstance(before, (int, float)) and isinstance(after, (int, float)) and cost:
-                    spent = before - after
-                    charged = spent >= cost - ELIXIR_DEBIT_TOLERANCE
-                    print(
-                        f"[Elixir] {pending_elixir_check['card']} cost={cost} "
-                        f"before={before} after={after} spent={spent} "
-                        f"charged={'yes' if charged else 'NO'}"
-                    )
-                pending_elixir_check = None
             # Default to "not in a battle" when the capture did not say. The
             # opposite default made a snapshot without the field look like a
             # battle, so the very next one counted as a match finishing.
@@ -1076,7 +1090,19 @@ def main() -> int:
             latest["decision"] = decision
             print(f"[AI Action] Decision: {format_ai_decision(decision)}")
 
+            elixir_before = elixir_probe() if elixir_probe and decision.get("action") == "place_card" else None
             result = executor.execute_decision(decision, snapshot)
+            if elixir_before is not None and result.get("status") == "executed":
+                time.sleep(ELIXIR_SETTLE_AFTER_PLAY_SEC)
+                elixir_after = elixir_probe()
+                cost = CARD_COSTS.get(result.get("card"))
+                if elixir_after is not None and cost:
+                    spent = elixir_before - elixir_after
+                    print(
+                        f"[Elixir] {result['card']} cost={cost} before={elixir_before} "
+                        f"after={elixir_after} spent={spent} "
+                        f"charged={'yes' if spent >= cost - ELIXIR_DEBIT_TOLERANCE else 'NO'}"
+                    )
             latest["result"] = result
             print(f"[AI Action] Result: {format_ai_result(result)}")
             # Record action for LLM context (even idles, so the model knows).
@@ -1090,16 +1116,6 @@ def main() -> int:
             planner.recent_actions.append(action_record)
 
             if result.get("status") == "executed" and result.get("card"):
-                # Elixir before the play, so the next snapshot can say whether
-                # the game actually charged us for it.
-                pending_elixir_check = {
-                    "card": result["card"],
-                    "cost": CARD_COSTS.get(result["card"]),
-                    "before": (snapshot.get("elixir_inferred", {}) or {}).get("count_estimate"),
-                    "sequence": sequence,
-                }
-                last_played_card = result["card"]
-                last_played_ts = now
                 cycle_tracker.record_play(result["card"])
                 elixir_clock.spend(result["card"])
                 pending_action = {
