@@ -1149,7 +1149,10 @@ def main() -> int:
             path = recorder.stop()
             if path:
                 print(f"[INFO] recording saved: {path} ({recorder.frames_written} frames)")
-        stopper.clear_stop_file()
+        # The stop file is deliberately left in place. run_loop.sh runs one of
+        # these per match and checks the same file between matches, so consuming
+        # it here would swallow the signal and start another match. Whoever
+        # starts a run clears it (Stopper does that at construction).
     return 0
 
 

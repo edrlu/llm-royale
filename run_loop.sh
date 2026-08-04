@@ -70,7 +70,6 @@ log "starting (videos in $VIDEO_DIR, logs in $LOG_DIR)"
 while true; do
     if [ -f "$STOP_FILE" ]; then
         log "stop file present, exiting"
-        rm -f "$STOP_FILE"
         break
     fi
 
@@ -98,7 +97,9 @@ while true; do
     status=$?
 
     played=$((played + 1))
-    placements=$(grep -c "Result: executed" "$logfile" 2>/dev/null || echo 0)
+    # grep -c prints 0 and exits non-zero when nothing matches, so a `|| echo 0`
+    # here would append a second count.
+    placements=$(grep -c "Result: executed" "$logfile" 2>/dev/null; true)
     log "match $played done (exit $status, $placements placements)"
 
     prune_videos
@@ -118,4 +119,7 @@ while true; do
     fi
 done
 
+# Clear it only on the way out, so a stop requested mid-match is still visible
+# to this loop when the match's own process has finished shutting down.
+rm -f "$STOP_FILE"
 log "loop finished after $played match(es)"
