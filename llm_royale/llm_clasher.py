@@ -1069,12 +1069,19 @@ def main() -> int:
                 for slot in (snapshot.get("hand_cards_inferred", {}) or {}).get("slots", []) or []
             }
             since_played = now - last_played_ts
-            # The card is only really gone once the hand stops reporting it. Time
-            # alone is a guess at how far behind the capture is; this waits for
-            # the evidence, with a fixed window underneath for the case where the
-            # classifier cannot see the slot at all.
+            # Replaying the card that was just spent needs positive evidence it
+            # has come back: seen in a labeled slot. Absence is not evidence —
+            # when no slot claims the card the executor falls back to "there is
+            # exactly one unlabeled slot, so it must be there", and the card just
+            # played is the one least likely to actually be in hand. That
+            # fallback is what the remaining duplicates were coming through.
+            # Immediately after a play the hand still shows the card *because*
+            # it is stale, so seeing it there proves nothing for the first
+            # moments — hence the flat block underneath. After that, only
+            # positive evidence that the card came back releases the guard.
+            redrawn = card in hand_labels
             stale_hand = since_played < SAME_CARD_REPLAY_BLOCK_SEC or (
-                card in hand_labels and since_played < SAME_CARD_HAND_CLEAR_MAX_SEC
+                since_played < SAME_CARD_HAND_CLEAR_MAX_SEC and not redrawn
             )
             if (
                 decision.get("action") == "place_card"
