@@ -60,22 +60,29 @@ def _draw_box_label(out: np.ndarray, text: str, x: int, y: int, color, scale: fl
     cv2.putText(out, text, (x, y), FONT, scale, color, 1, cv2.LINE_AA)
 
 
-def draw_detections(out: np.ndarray, detections: list) -> None:
+def draw_detections(out: np.ndarray, detections: list, scale: float = 1.0) -> None:
+    """Draw detection boxes, scaling them from detector pixels to frame pixels.
+
+    The detector works on a downscaled frame (832px) while the recording can be
+    at the window's native size, so boxes arrive in the smaller coordinate space
+    and have to be scaled up to land on the right units.
+    """
+    thickness = max(1, round(scale))
     for det in detections or []:
         bbox = det.get("bbox") or {}
         try:
-            x1, y1 = int(bbox["x1"]), int(bbox["y1"])
-            x2, y2 = int(bbox["x2"]), int(bbox["y2"])
+            x1, y1 = int(bbox["x1"] * scale), int(bbox["y1"] * scale)
+            x2, y2 = int(bbox["x2"] * scale), int(bbox["y2"] * scale)
         except (KeyError, TypeError, ValueError):
             continue
         owner = det.get("owner")
         color = FRIENDLY if owner == "friendly" else ENEMY if owner == "enemy" else NEUTRAL
-        cv2.rectangle(out, (x1, y1), (x2, y2), color, 1)
+        cv2.rectangle(out, (x1, y1), (x2, y2), color, thickness)
         confidence = det.get("confidence")
         label = str(det.get("label", "?"))
         if isinstance(confidence, (int, float)):
             label = f"{label} {confidence:.2f}"
-        _draw_box_label(out, label, x1, max(10, y1 - 3), color)
+        _draw_box_label(out, label, x1, max(int(10 * scale), y1 - 3), color, scale=0.4 * scale)
 
 
 def header_lines(snapshot: dict, decision, result) -> list:
@@ -128,19 +135,20 @@ def header_lines(snapshot: dict, decision, result) -> list:
     return lines
 
 
-def draw_header(out: np.ndarray, lines: list, scale: float = 0.4) -> None:
+def draw_header(out: np.ndarray, lines: list, scale: float = 0.4, size_scale: float = 1.0) -> None:
     if not lines:
         return
     frame_w = out.shape[1]
-    line_height = 15
-    padding = 5
+    scale = scale * size_scale
+    line_height = int(round(15 * size_scale))
+    padding = int(round(5 * size_scale))
     height = padding * 2 + line_height * len(lines)
 
     # Translucent rather than solid: the top of the arena sits underneath.
     panel = out[0:height, 0:frame_w]
     cv2.addWeighted(np.full_like(panel, HEADER_BG), 0.72, panel, 0.28, 0, panel)
 
-    y = padding + 11
+    y = padding + int(round(11 * size_scale))
     for line in lines:
         cv2.putText(
             out, fit_text(line, frame_w - padding * 2, scale),
@@ -149,18 +157,27 @@ def draw_header(out: np.ndarray, lines: list, scale: float = 0.4) -> None:
         y += line_height
 
 
+def detection_scale(frame: np.ndarray, snapshot: dict) -> float:
+    """Ratio between the recorded frame and the frame the detector measured on."""
+    capture_width = ((snapshot or {}).get("capture") or {}).get("width")
+    if not capture_width:
+        return 1.0
+    return frame.shape[1] / float(capture_width)
+
+
 def draw_overlay(frame: np.ndarray, snapshot: dict, decision=None, result=None) -> np.ndarray:
     """Draw detections, the river line, and a fitted header onto a copy."""
     out = frame.copy()
     snapshot = snapshot or {}
+    scale = detection_scale(out, snapshot)
 
-    draw_detections(out, snapshot.get("detections"))
+    draw_detections(out, snapshot.get("detections"), scale)
 
     board_ref = snapshot.get("board_ref") or (snapshot.get("llm_summary", {}) or {}).get("board_reference") or {}
     river = board_ref.get("river_y_norm")
     if isinstance(river, (int, float)):
         y = int(round(float(river) * out.shape[0]))
-        cv2.line(out, (0, y), (out.shape[1] - 1, y), RIVER, 1)
+        cv2.line(out, (0, y), (out.shape[1] - 1, y), RIVER, max(1, round(scale)))
 
-    draw_header(out, header_lines(snapshot, decision, result))
+    draw_header(out, header_lines(snapshot, decision, result), size_scale=scale)
     return out

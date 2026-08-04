@@ -810,6 +810,11 @@ def main() -> int:
         help="Recording frame rate, independent of the planning rate (default: 60)",
     )
     parser.add_argument(
+        "--record-max-size", type=int, default=1392,
+        help="Longest edge of the recording in pixels; the window's native size "
+             "is 1392, while the detector works at 832 (default: 1392)",
+    )
+    parser.add_argument(
         "--record-raw", action="store_true",
         help="Record without the detection overlay",
     )
@@ -857,8 +862,11 @@ def main() -> int:
         # The recorder owns its own view of the window: the planner's frames
         # arrive through the capture subprocess at planning rate, which is far
         # too slow and too uneven to make a watchable video.
-        record_source = MirrorFrameSource(target_fps=args.record_fps)
-        record_source.probe()
+        # Recorded at the window's native size by default: the 832px cap exists
+        # for YOLO's benefit and the recorder runs no inference. Detection boxes
+        # arrive in detector coordinates and get scaled by the overlay.
+        record_source = MirrorFrameSource(max_size=args.record_max_size, target_fps=args.record_fps)
+        record_info = record_source.probe()
 
         def annotate(frame):
             return draw_overlay(frame, latest["snapshot"], latest["decision"], latest["result"])
@@ -871,7 +879,8 @@ def main() -> int:
         )
         recorder.start()
         print(
-            f"[INFO] recording to {args.record} at {args.record_fps:g}fps"
+            f"[INFO] recording to {args.record} at {args.record_fps:g}fps, "
+            f"{record_info['frame']['width']}x{record_info['frame']['height']}"
             f"{' (raw)' if args.record_raw else ' with detection overlay'}"
         )
 
