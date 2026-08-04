@@ -26,6 +26,13 @@ import numpy as np
 class VideoRecorder:
     """Encodes frames to mp4 through an ffmpeg pipe on a background thread."""
 
+    # Ceiling on how much wall time one pass may fill with duplicated frames.
+    # Big enough to ride out a stall — loading the YOLO weights blocks grabs for
+    # seconds, and a cap below that silently drops the time instead of filling
+    # it, which is what turned a 110s match into a 63s fast-forward. Small
+    # enough that the mirror window disappearing cannot dump minutes of copies.
+    MAX_CATCHUP_SECONDS = 5.0
+
     def __init__(
         self,
         output_path: str,
@@ -70,10 +77,13 @@ class VideoRecorder:
 
     def _loop(self) -> None:
         period = 1.0 / self.fps if self.fps > 0 else 0.0
+        wall_start = None
         while self._running.is_set():
             started = time.perf_counter()
             frame = self.frame_source()
             if frame is not None:
+                if wall_start is None:
+                    wall_start = started
                 if self.annotate is not None:
                     try:
                         frame = self.annotate(frame)
@@ -85,9 +95,18 @@ class VideoRecorder:
                 # ffmpeg was told one fixed frame size; anything else (the mirror
                 # window got resized mid-run) has to be skipped, not streamed.
                 if (frame.shape[1], frame.shape[0]) == self._size:
+                    # ffmpeg is fed a constant frame rate, so the file only plays
+                    # back at real speed if the frame count matches elapsed wall
+                    # time. When a grab takes longer than one frame period the
+                    # latest frame is repeated to fill the gap, rather than
+                    # letting the video silently turn into a fast-forward.
+                    due = max(1, int((started - wall_start) * self.fps) + 1 - self._frames_written)
+                    payload = np.ascontiguousarray(frame).tobytes()
                     try:
-                        self._process.stdin.write(np.ascontiguousarray(frame).tobytes())
-                        self._frames_written += 1
+                        catchup_cap = max(1, int(self.MAX_CATCHUP_SECONDS * self.fps))
+                        for _ in range(min(due, catchup_cap)):
+                            self._process.stdin.write(payload)
+                            self._frames_written += 1
                     except (BrokenPipeError, ValueError):
                         break
             remaining = period - (time.perf_counter() - started)

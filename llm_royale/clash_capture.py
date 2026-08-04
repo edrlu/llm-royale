@@ -1082,8 +1082,8 @@ def main():
         help="Override max dimension in pixels (default: preset value)",
     )
     parser.add_argument(
-        "--mirror-fps", type=float, default=30.0,
-        help="Target grab rate for the iPhone Mirroring window (default: 30)",
+        "--mirror-fps", type=float, default=8.0,
+        help="Target grab rate for the iPhone Mirroring window (default: 8)",
     )
     args = parser.parse_args()
     run(args)

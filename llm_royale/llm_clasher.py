@@ -20,6 +20,7 @@ import requests
 
 from .mac_action import MirrorActionExecutor
 from .match_navigator import BATTLE_BUTTON, BATTLE_TAB, OK_BUTTON
+from .overlay import draw_overlay
 from .recorder import VideoRecorder
 from .stopper import DEFAULT_STOP_FILE, Stopper
 from .capture_config import PRINCESS_TOWER_FULL_HP, KING_TOWER_FULL_HP
@@ -46,6 +47,9 @@ DOUBLE_ELIXIR_RATE = 1.4
 TRIPLE_ELIXIR_RATE = 0.93
 DOUBLE_ELIXIR_AT_SEC = 180.0   # 3 minutes into the match
 TRIPLE_ELIXIR_AT_SEC = 240.0   # 4 minutes into the match
+
+# Consecutive snapshots without a battle before the match counts as over.
+MATCH_END_CONFIRM_SNAPSHOTS = 6
 
 
 class TowerHealthTracker:
@@ -802,8 +806,12 @@ def main() -> int:
         help="Record the mirrored screen to this mp4 on a background thread",
     )
     parser.add_argument(
-        "--record-fps", type=float, default=12.0,
-        help="Recording frame rate, independent of the planning rate (default: 12)",
+        "--record-fps", type=float, default=60.0,
+        help="Recording frame rate, independent of the planning rate (default: 60)",
+    )
+    parser.add_argument(
+        "--record-raw", action="store_true",
+        help="Record without the detection overlay",
     )
     parser.add_argument(
         "--stop-file", default=DEFAULT_STOP_FILE,
@@ -837,6 +845,12 @@ def main() -> int:
     stopper = Stopper(args.stop_file)
 
     recorder = None
+    # Shared with the recorder thread: the newest snapshot and decision, so the
+    # overlay can be redrawn on every recorded frame. Detection only happens at
+    # planning rate, so the boxes refresh at that rate while the video itself
+    # stays at the full recording rate.
+    latest = {"snapshot": None, "decision": None, "result": None}
+
     if args.record:
         from .mirror_capture import MirrorFrameSource
 
@@ -845,13 +859,21 @@ def main() -> int:
         # too slow and too uneven to make a watchable video.
         record_source = MirrorFrameSource(target_fps=args.record_fps)
         record_source.probe()
+
+        def annotate(frame):
+            return draw_overlay(frame, latest["snapshot"], latest["decision"], latest["result"])
+
         recorder = VideoRecorder(
             args.record,
             frame_source=record_source.grab_once,
             fps=args.record_fps,
+            annotate=None if args.record_raw else annotate,
         )
         recorder.start()
-        print(f"[INFO] recording to {args.record} at {args.record_fps:g}fps")
+        print(
+            f"[INFO] recording to {args.record} at {args.record_fps:g}fps"
+            f"{' (raw)' if args.record_raw else ' with detection overlay'}"
+        )
 
     worker = CaptureWorker(args.python_bin, args.state_json)
     planner = OpenAIPlanner(args.model)
@@ -872,6 +894,7 @@ def main() -> int:
     matches_finished = 0
     was_in_battle = False
     left_battle_ts = None
+    out_of_battle_streak = 0
     try:
         while True:
             if stopper.should_stop():
@@ -891,13 +914,28 @@ def main() -> int:
                 time.sleep(0.2)
                 continue
 
-            in_battle = snapshot.get("screen", {}).get("in_battle", True)
+            latest["snapshot"] = snapshot
+            # Default to "not in a battle" when the capture did not say. The
+            # opposite default made a snapshot without the field look like a
+            # battle, so the very next one counted as a match finishing.
+            in_battle = bool((snapshot.get("screen") or {}).get("in_battle"))
 
-            if was_in_battle and not in_battle:
-                matches_finished += 1
-                left_battle_ts = time.time()
-                print(f"[Match] finished ({matches_finished})")
-            was_in_battle = in_battle
+            # Loading screens and the mid-match banners ("GO!", a card name over
+            # the arena) hide the elixir bar for a snapshot or two, so a single
+            # out-of-battle reading is not the end of a match. Require a short
+            # streak before believing it.
+            if in_battle:
+                out_of_battle_streak = 0
+                if not was_in_battle:
+                    print("[Match] started")
+                was_in_battle = True
+            else:
+                out_of_battle_streak += 1
+                if was_in_battle and out_of_battle_streak >= MATCH_END_CONFIRM_SNAPSHOTS:
+                    matches_finished += 1
+                    left_battle_ts = time.time()
+                    was_in_battle = False
+                    print(f"[Match] finished ({matches_finished})")
 
             if not in_battle:
                 if args.matches and matches_finished >= args.matches:
@@ -998,8 +1036,10 @@ def main() -> int:
                     "decision_latency_sec_context": model_decision_latency_sec,
                 })
             )
+            latest["decision"] = decision
             print(f"[AI Action] Decision: {format_ai_decision(decision)}")
             result = executor.execute_decision(decision, snapshot)
+            latest["result"] = result
             print(f"[AI Action] Result: {format_ai_result(result)}")
             # Record action for LLM context (even idles, so the model knows).
             action_record = {
