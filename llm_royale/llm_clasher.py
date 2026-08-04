@@ -51,6 +51,13 @@ TRIPLE_ELIXIR_AT_SEC = 240.0   # 4 minutes into the match
 # Consecutive snapshots without a battle before the match counts as over.
 MATCH_END_CONFIRM_SNAPSHOTS = 6
 
+# A played card leaves the hand and only returns after four more cards, so the
+# same card cannot legitimately be played twice in a row. When it happens it is
+# the hand classifier still showing the pre-play hand — the capture is a few
+# hundred ms behind — and the swipe does nothing. Measured at 20% of all
+# placements in one match before this guard.
+SAME_CARD_REPLAY_BLOCK_SEC = 2.5
+
 
 class TowerHealthTracker:
     """Smooths per-tower HP readings across snapshots.
@@ -904,6 +911,8 @@ def main() -> int:
     was_in_battle = False
     left_battle_ts = None
     out_of_battle_streak = 0
+    last_played_card = None
+    last_played_ts = 0.0
     try:
         while True:
             if stopper.should_stop():
@@ -1047,6 +1056,19 @@ def main() -> int:
             )
             latest["decision"] = decision
             print(f"[AI Action] Decision: {format_ai_decision(decision)}")
+
+            card = decision.get("card")
+            if (
+                decision.get("action") == "place_card"
+                and card is not None
+                and card == last_played_card
+                and now - last_played_ts < SAME_CARD_REPLAY_BLOCK_SEC
+            ):
+                print(f"[AI Action] Skipped: {card} was just played, hand is stale")
+                last_sequence = sequence
+                last_signature = signature
+                continue
+
             result = executor.execute_decision(decision, snapshot)
             latest["result"] = result
             print(f"[AI Action] Result: {format_ai_result(result)}")
@@ -1061,6 +1083,8 @@ def main() -> int:
             planner.recent_actions.append(action_record)
 
             if result.get("status") == "executed" and result.get("card"):
+                last_played_card = result["card"]
+                last_played_ts = now
                 cycle_tracker.record_play(result["card"])
                 elixir_clock.spend(result["card"])
                 pending_action = {
