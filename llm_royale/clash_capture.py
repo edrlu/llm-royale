@@ -41,6 +41,8 @@ from .capture_config import (
 from .cycle_tracker import CardSlotClassifier, crop_hand_slots
 from .match_navigator import screen_kind
 from .hud_ocr import (
+    TowerBarReader,
+    count_elixir_pips,
     infer_elixir_count_from_frame as infer_elixir_count_from_ocr,
     infer_tower_health_from_bars,
     infer_tower_health_from_frame,
@@ -860,6 +862,7 @@ def infer_frame_state(
     detector,
     hand_classifier,
     executor: Optional[ThreadPoolExecutor] = None,
+    bar_reader: Optional[TowerBarReader] = None,
 ) -> dict:
     def infer_hand():
         if hand_classifier.enabled:
@@ -881,7 +884,7 @@ def infer_frame_state(
     # Tower HP has to wait for the detections: the OCR is anchored to the
     # detected bar boxes so it follows the arena camera. Fixed crops are the
     # fallback for the frames where no bar was detected at all.
-    tower_health = infer_tower_health_from_bars(frame, detections)
+    tower_health = infer_tower_health_from_bars(frame, detections, bar_reader, executor)
     if tower_health is None:
         tower_health = infer_tower_health_from_frame(frame)
 
@@ -951,6 +954,7 @@ def run(args):
 
     detector = ClashDetector(preset)
     hand_classifier = CardSlotClassifier()
+    bar_reader = TowerBarReader()
 
     frame_w, frame_h, read_latest, stop_source = start_frame_source(args, preset)
 
@@ -970,7 +974,9 @@ def run(args):
 
             t0 = time.perf_counter()
             screen = screen_kind(frame)
-            frame_state = infer_frame_state(frame, frame_w, frame_h, detector, hand_classifier, executor)
+            frame_state = infer_frame_state(
+                frame, frame_w, frame_h, detector, hand_classifier, executor, bar_reader
+            )
             process_ms = (time.perf_counter() - t0) * 1000.0
             sequence += 1
             detections = frame_state["detections"]

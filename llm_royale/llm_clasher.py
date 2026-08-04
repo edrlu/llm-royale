@@ -20,6 +20,8 @@ import requests
 
 from .mac_action import MirrorActionExecutor
 from .match_navigator import BATTLE_BUTTON, BATTLE_TAB, OK_BUTTON
+from .recorder import VideoRecorder
+from .stopper import DEFAULT_STOP_FILE, Stopper
 from .capture_config import PRINCESS_TOWER_FULL_HP, KING_TOWER_FULL_HP
 from .cycle_tracker import CycleTracker
 
@@ -796,8 +798,28 @@ def main() -> int:
     parser.add_argument("--python-bin", default=sys.executable)
     parser.add_argument("--cooldown-sec", type=float, default=0.5)
     parser.add_argument(
+        "--record", metavar="PATH", default=None,
+        help="Record the mirrored screen to this mp4 on a background thread",
+    )
+    parser.add_argument(
+        "--record-fps", type=float, default=12.0,
+        help="Recording frame rate, independent of the planning rate (default: 12)",
+    )
+    parser.add_argument(
+        "--stop-file", default=DEFAULT_STOP_FILE,
+        help=f"Stop cleanly when this file appears (default: {DEFAULT_STOP_FILE})",
+    )
+    parser.add_argument(
         "--auto-battle", action="store_true",
         help="Tap through menus and start a new battle whenever one is not running",
+    )
+    parser.add_argument(
+        "--matches", type=int, default=0,
+        help="Stop cleanly after this many finished matches (0 = keep playing)",
+    )
+    parser.add_argument(
+        "--idle-exit-sec", type=float, default=90.0,
+        help="Without --auto-battle, stop after this long outside a battle (0 = never)",
     )
     parser.add_argument(
         "--battle-load-sec", type=float, default=12.0,
@@ -811,6 +833,25 @@ def main() -> int:
 
     if not args.no_wait:
         wait_for_space()
+
+    stopper = Stopper(args.stop_file)
+
+    recorder = None
+    if args.record:
+        from .mirror_capture import MirrorFrameSource
+
+        # The recorder owns its own view of the window: the planner's frames
+        # arrive through the capture subprocess at planning rate, which is far
+        # too slow and too uneven to make a watchable video.
+        record_source = MirrorFrameSource(target_fps=args.record_fps)
+        record_source.probe()
+        recorder = VideoRecorder(
+            args.record,
+            frame_source=record_source.grab_once,
+            fps=args.record_fps,
+        )
+        recorder.start()
+        print(f"[INFO] recording to {args.record} at {args.record_fps:g}fps")
 
     worker = CaptureWorker(args.python_bin, args.state_json)
     planner = OpenAIPlanner(args.model)
@@ -828,8 +869,15 @@ def main() -> int:
     pending_action = None
     menu_attempt = 0
     next_menu_tap_ts = 0.0
+    matches_finished = 0
+    was_in_battle = False
+    left_battle_ts = None
     try:
         while True:
+            if stopper.should_stop():
+                print(f"[INFO] stopping: {stopper.reason}")
+                break
+
             snapshot = read_snapshot(args.state_json)
             if snapshot is None:
                 if worker.failed():
@@ -843,28 +891,47 @@ def main() -> int:
                 time.sleep(0.2)
                 continue
 
-            if args.auto_battle and not snapshot.get("screen", {}).get("in_battle", True):
-                # Outside a battle there is nothing to plan, so tap through the
-                # menus instead of paying for an LLM call on a home screen.
-                kind = snapshot.get("screen", {}).get("kind", "other")
-                now = time.time()
-                if now >= next_menu_tap_ts:
-                    if kind == "home":
-                        target = BATTLE_BUTTON
-                    else:
-                        # Rotate between the two dismissals: the result banner's
-                        # OK, and the bottom Battle tab that returns home from
-                        # anywhere else.
-                        target = OK_BUTTON if menu_attempt % 2 == 0 else BATTLE_TAB
-                    print(f"[Menu] screen={kind} tapping {target}")
-                    executor.tap_normalized(*target)
-                    menu_attempt += 1
-                    # A battle takes a few seconds to load; tapping faster than
-                    # that just queues taps into the loading screen.
-                    next_menu_tap_ts = now + (args.battle_load_sec if kind == "home" else 2.0)
+            in_battle = snapshot.get("screen", {}).get("in_battle", True)
+
+            if was_in_battle and not in_battle:
+                matches_finished += 1
+                left_battle_ts = time.time()
+                print(f"[Match] finished ({matches_finished})")
+            was_in_battle = in_battle
+
+            if not in_battle:
+                if args.matches and matches_finished >= args.matches:
+                    print(f"[INFO] stopping: played {matches_finished} match(es)")
+                    break
+
+                # Never plan against a menu. The LLM has nothing to decide there,
+                # and every snapshot would be a paid call to be told so.
+                if args.auto_battle:
+                    kind = snapshot.get("screen", {}).get("kind", "other")
+                    now = time.time()
+                    if now >= next_menu_tap_ts:
+                        if kind == "home":
+                            target = BATTLE_BUTTON
+                        else:
+                            # Rotate between the two dismissals: the result
+                            # banner's OK, and the bottom Battle tab that
+                            # returns home from anywhere else.
+                            target = OK_BUTTON if menu_attempt % 2 == 0 else BATTLE_TAB
+                        print(f"[Menu] screen={kind} tapping {target}")
+                        executor.tap_normalized(*target)
+                        menu_attempt += 1
+                        # A battle takes a few seconds to load; tapping faster
+                        # than that just queues taps into the loading screen.
+                        next_menu_tap_ts = now + (args.battle_load_sec if kind == "home" else 2.0)
+                elif args.idle_exit_sec and left_battle_ts is not None:
+                    if time.time() - left_battle_ts >= args.idle_exit_sec:
+                        print(f"[INFO] stopping: {args.idle_exit_sec:g}s outside a battle")
+                        break
+
                 last_sequence = sequence
                 pending_action = None
                 continue
+
             menu_attempt = 0
 
             if pending_action is not None:
@@ -974,6 +1041,11 @@ def main() -> int:
         print("\n[INFO] Shutting down...")
     finally:
         worker.stop()
+        if recorder is not None:
+            path = recorder.stop()
+            if path:
+                print(f"[INFO] recording saved: {path} ({recorder.frames_written} frames)")
+        stopper.clear_stop_file()
     return 0
 
 

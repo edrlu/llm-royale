@@ -1,3 +1,7 @@
+import os
+import shutil
+import subprocess
+import tempfile
 from typing import Optional
 
 import cv2
@@ -162,8 +166,31 @@ def count_elixir_pips(frame: np.ndarray) -> dict:
     return {"count": count, "fractions": fractions, "notes": []}
 
 
-def infer_elixir_count_from_frame(frame: np.ndarray) -> dict:
+def infer_elixir_count_from_frame(frame: np.ndarray, with_ocr_crosscheck: bool = False) -> dict:
+    """Elixir count from the bar segments.
+
+    The digit OCR is off by default: it costs ~110ms a frame, it is not the
+    source of the answer, and on this font it is wrong more often than not. Pass
+    with_ocr_crosscheck=True when debugging the pip geometry.
+    """
     pips = count_elixir_pips(frame)
+    if not with_ocr_crosscheck:
+        return {
+            "count_estimate": pips["count"],
+            "model_count_estimate": pips["count"],
+            "detector_count_estimate": None,
+            "pip_fractions": pips["fractions"],
+            "ocr_digit_estimate": None,
+            "strip_bbox_norm": {
+                "x1": round(ELIXIR_PIP_X_LEFT_NORM, 4),
+                "x2": round(ELIXIR_PIP_X_RIGHT_NORM, 4),
+                "y1": round(ELIXIR_PIP_Y_LOWER_NORM, 4),
+                "y2": round(ELIXIR_PIP_Y_UPPER_NORM, 4),
+            },
+            "ocr_text": "",
+            "ocr_confidence": None,
+            "notes": ["Count comes from filled elixir bar segments."],
+        }
 
     strip = _crop_norm(
         frame,
@@ -300,6 +327,88 @@ EXPECTED_BAR_CENTERS = {
 BAR_MATCH_MAX_DISTANCE = 0.09
 
 
+# Page segmentation modes to vote across. Each is a separate tesseract run, but
+# every bar image goes through in one batch, so the count costs little.
+BAR_PSM_MODES = (7, 8, 13)
+
+
+def _batch_tesseract_digits(images: list, psms=BAR_PSM_MODES) -> list:
+    """Run tesseract once per page-segmentation mode over every image at once.
+
+    Reading one bar well needs three preprocessing variants across three
+    segmentation modes, and a per-image pytesseract call spends ~44ms of its
+    ~48ms just starting the binary. Tesseract accepts a file of image paths and
+    emits one form-feed separated page per image, which turns 30-odd process
+    launches per frame into three. Returns, for each input image, a dict of
+    digit string -> how many passes produced it.
+    """
+    if not images:
+        return []
+
+    results = [dict() for _ in images]
+    workdir = tempfile.mkdtemp(prefix="clash-ocr-")
+    try:
+        paths = []
+        for index, image in enumerate(images):
+            path = os.path.join(workdir, f"{index:03d}.png")
+            cv2.imwrite(path, image)
+            paths.append(path)
+        list_path = os.path.join(workdir, "images.txt")
+        with open(list_path, "w", encoding="utf-8") as handle:
+            handle.write("\n".join(paths))
+
+        for psm in psms:
+            completed = subprocess.run(
+                [
+                    "tesseract", list_path, "stdout",
+                    "--oem", "3", "--psm", str(psm),
+                    "-c", "tessedit_char_whitelist=0123456789",
+                    "-c", "load_system_dawg=0",
+                    "-c", "load_freq_dawg=0",
+                ],
+                capture_output=True,
+                text=True,
+            )
+            if completed.returncode != 0:
+                continue
+            # One page per input image, in the order they were listed.
+            for index, page in enumerate(completed.stdout.split("\f")[:len(images)]):
+                text = "".join(ch for ch in page if ch.isdigit())
+                if text:
+                    results[index][text] = results[index].get(text, 0) + 1
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
+
+    return results
+
+
+def _bar_crop(frame: np.ndarray, bbox: dict) -> np.ndarray:
+    x1 = bbox["x1"] + int(BAR_CROWN_FRACTION * (bbox["x2"] - bbox["x1"]))
+    return frame[max(0, bbox["y1"]):bbox["y2"], max(0, x1):bbox["x2"]]
+
+
+def _bar_variants(crop: np.ndarray) -> list:
+    return (
+        _preprocess_blue_bar_digits(crop)
+        if _bar_is_friendly(crop)
+        else _preprocess_tower_digits(crop)
+    )
+
+
+def _pick_reading(votes: dict, max_hp: int) -> dict:
+    """Pick the most-voted plausible number out of one bar's OCR passes."""
+    plausible = {
+        text: count for text, count in votes.items()
+        if text.isdigit() and int(text) <= max_hp
+    }
+    if not plausible:
+        return {"value": None, "text": "", "ocr_confidence": None}
+    # Ties go to the longer reading: a clipped "302" and a full "3052" can draw,
+    # and the clipped one is the failure mode.
+    text = max(plausible.items(), key=lambda item: (item[1], len(item[0])))[0]
+    return {"value": int(text), "text": text, "ocr_confidence": None}
+
+
 def _ocr_bar_value(frame: np.ndarray, bbox: dict, max_hp: int) -> dict:
     """Read the HP number out of one detected tower bar.
 
@@ -340,7 +449,80 @@ def _ocr_bar_value(frame: np.ndarray, bbox: dict, max_hp: int) -> dict:
     }
 
 
-def infer_tower_health_from_bars(frame: np.ndarray, detections: list) -> dict:
+class TowerBarReader:
+    """Reads tower HP from detected bars, skipping bars that have not changed.
+
+    OCR dominates the frame budget: reading one bar well needs three
+    preprocessing variants across three page-segmentation modes, and anything
+    cheaper loses accuracy. Tower HP, though, is unchanged on most frames — so
+    each bar's pixels are fingerprinted and the previous number is reused when
+    they look the same. Only bars that actually took damage pay for OCR, and
+    those run in parallel.
+    """
+
+    # Mean absolute pixel difference below which a bar counts as unchanged.
+    # Well under the change from a single digit flipping, well above sampling
+    # noise from the arena animating behind a translucent bar edge.
+    UNCHANGED_MAX_DIFF = 2.5
+
+    def __init__(self):
+        self._cache = {}
+
+    def _cached_value(self, name: str, crop: np.ndarray):
+        entry = self._cache.get(name)
+        if entry is None or entry["thumb"].shape != crop.shape:
+            return None
+        diff = float(np.abs(entry["thumb"].astype(np.int16) - crop.astype(np.int16)).mean())
+        if diff > self.UNCHANGED_MAX_DIFF:
+            return None
+        return entry["reading"]
+
+    def read_all(self, frame: np.ndarray, slots: dict) -> dict:
+        """Read every tower bar, OCRing only the ones whose pixels changed."""
+        readings = {}
+        pending = []
+
+        for name, slot in slots.items():
+            bbox = slot["bbox"]
+            crop = _bar_crop(frame, bbox)
+            if crop.size == 0:
+                readings[name] = {"value": None, "text": "", "ocr_confidence": None}
+                continue
+            cached = self._cached_value(name, crop)
+            if cached is not None:
+                readings[name] = {**cached, "cached": True}
+                continue
+            pending.append((name, crop))
+
+        if pending:
+            images = []
+            owners = []
+            for name, crop in pending:
+                for variant in _bar_variants(crop):
+                    images.append(variant)
+                    owners.append(name)
+
+            per_image = _batch_tesseract_digits(images)
+            votes = {name: {} for name, _ in pending}
+            for owner, result in zip(owners, per_image):
+                for text, count in result.items():
+                    votes[owner][text] = votes[owner].get(text, 0) + count
+
+            for name, crop in pending:
+                max_hp = KING_TOWER_FULL_HP if name.endswith("king_tower") else PRINCESS_TOWER_FULL_HP
+                reading = _pick_reading(votes[name], max_hp)
+                self._cache[name] = {"thumb": crop.copy(), "reading": reading}
+                readings[name] = reading
+
+        return readings
+
+
+def infer_tower_health_from_bars(
+    frame: np.ndarray,
+    detections: list,
+    reader: Optional["TowerBarReader"] = None,
+    executor=None,
+) -> dict:
     """Read tower HP from the detected bars rather than fixed screen crops.
 
     The arena camera pans and zooms — most visibly when a tower falls or at the
@@ -383,12 +565,13 @@ def infer_tower_health_from_bars(frame: np.ndarray, detections: list) -> dict:
     if not slots:
         return None
 
-    raw = {}
-    for name, slot in slots.items():
-        max_hp = KING_TOWER_FULL_HP if name.endswith("king_tower") else PRINCESS_TOWER_FULL_HP
-        reading = _ocr_bar_value(frame, slot["bbox"], max_hp)
-        reading["bbox"] = slot["bbox"]
-        raw[name] = reading
+    if reader is not None:
+        readings = reader.read_all(frame, slots)
+    else:
+        scratch = TowerBarReader()
+        readings = scratch.read_all(frame, slots)
+
+    raw = {name: {**reading, "bbox": slots[name]["bbox"]} for name, reading in readings.items()}
 
     return _resolve_tower_health(raw, source="detected tower bars")
 
