@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Run Clash capture, call an LLM for the next move, and execute the action on Android.
+Run Clash capture, call an LLM for the next move, and execute the action on the iPhone.
 """
 
 import argparse
@@ -44,6 +44,59 @@ DOUBLE_ELIXIR_RATE = 1.4
 TRIPLE_ELIXIR_RATE = 0.93
 DOUBLE_ELIXIR_AT_SEC = 180.0   # 3 minutes into the match
 TRIPLE_ELIXIR_AT_SEC = 240.0   # 4 minutes into the match
+
+
+class TowerHealthTracker:
+    """Smooths per-tower HP readings across snapshots.
+
+    A troop standing in front of a tower hides part of its HP number, and the
+    OCR then reports something like 94 for a tower actually sitting at 2254.
+    Tower HP only ever falls during a match, and never by thousands between two
+    snapshots, so a reading that violates both has to be confirmed by a second
+    snapshot before it is believed. That costs one snapshot of latency on a real
+    burst of damage and rejects the misreads outright.
+
+    An increase is treated the same way, which is what lets a new match through:
+    the towers come back at full HP and stay there, so the second snapshot
+    confirms it.
+    """
+
+    MAX_BELIEVABLE_DROP = 1200
+    CONFIRM_TOLERANCE = 0.10
+
+    def __init__(self):
+        self.accepted = {}
+        self.pending = {}
+
+    def _confirms(self, name: str, value: int) -> bool:
+        previous = self.pending.get(name)
+        self.pending[name] = value
+        if previous is None:
+            return False
+        tolerance = max(50.0, abs(previous) * self.CONFIRM_TOLERANCE)
+        return abs(previous - value) <= tolerance
+
+    def update(self, towers: dict) -> dict:
+        for name, tower in (towers or {}).items():
+            value = tower.get("value")
+            if value is None:
+                continue
+            last = self.accepted.get(name)
+
+            plausible = last is None or (value <= last and last - value <= self.MAX_BELIEVABLE_DROP)
+            if plausible:
+                self.accepted[name] = value
+                self.pending.pop(name, None)
+            elif self._confirms(name, value):
+                self.accepted[name] = value
+                self.pending.pop(name, None)
+            else:
+                # Keep the last trusted number and mark it, so the planner (and
+                # anyone reading the log) knows this one is held over.
+                tower["value"] = last
+                tower["status"] = "held_pending_confirmation"
+                tower["rejected_reading"] = value
+        return towers
 
 
 class ElixirClock:
@@ -437,15 +490,17 @@ class OpenAIPlanner:
             "\n"
             "COORDINATE SYSTEM:\n"
             f"Normalized 0-1. Top of screen = 0.0 (enemy king). River/bridge ≈ {R:.2f}.\n"
-            f"Your side = y > {R:.2f}. Enemy side = y < {R:.2f}. Arena ends ~0.78 (below is hand bar).\n"
-            "Left lane x≈0.30, right lane x≈0.70. Center x≈0.50.\n"
+            f"Your side = y > {R:.2f}. Enemy side = y < {R:.2f}. Arena ends ~0.80 (below is hand bar).\n"
+            "Left lane x≈0.22, right lane x≈0.78. Center x≈0.50.\n"
             "\n"
+            # Measured from detected tower boxes on the iPhone capture. The lanes
+            # sit further out than they look: 0.22/0.78, not 0.33/0.67.
             "LANDMARK POSITIONS (approximate y_norm):\n"
-            "- Enemy king tower:      y≈0.12, x≈0.50\n"
-            "- Enemy princess towers:  y≈0.26, left x≈0.33, right x≈0.67\n"
-            f"- Bridge/river:           y≈{R:.2f}\n"
-            "- YOUR princess towers:   y≈0.64, left x≈0.33, right x≈0.67\n"
-            "- YOUR king tower:        y≈0.76, x≈0.50\n"
+            "- Enemy king tower:      y≈0.21, x≈0.50\n"
+            "- Enemy princess towers:  y≈0.29, left x≈0.22, right x≈0.78\n"
+            f"- Bridge/river:           y≈{R:.2f}, bridges at x≈0.22 and x≈0.78\n"
+            "- YOUR princess towers:   y≈0.64, left x≈0.22, right x≈0.78\n"
+            "- YOUR king tower:        y≈0.72, x≈0.50\n"
             "The `towers` dict has LIVE detected positions (x,y) — use those when available, "
             "fall back to these landmarks only if a tower is missing from detection.\n"
             "\n"
@@ -761,6 +816,7 @@ def main() -> int:
     planner = OpenAIPlanner(args.model)
     executor = MirrorActionExecutor()
     cycle_tracker = CycleTracker()
+    tower_tracker = TowerHealthTracker()
     elixir_clock = ElixirClock()
     elixir_clock.start()
     worker.start()
@@ -825,6 +881,7 @@ def main() -> int:
                 time.sleep(0.2)
                 continue
 
+            tower_tracker.update(snapshot.get("tower_health_inferred", {}).get("towers", {}))
             cycle_tracker.observe_hand(snapshot.get("hand_cards_inferred", {}).get("slots", []))
             snapshot["cycle_state"] = cycle_tracker.state()
 

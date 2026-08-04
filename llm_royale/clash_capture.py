@@ -42,6 +42,7 @@ from .cycle_tracker import CardSlotClassifier, crop_hand_slots
 from .match_navigator import screen_kind
 from .hud_ocr import (
     infer_elixir_count_from_frame as infer_elixir_count_from_ocr,
+    infer_tower_health_from_bars,
     infer_tower_health_from_frame,
 )
 
@@ -869,16 +870,20 @@ def infer_frame_state(
         detections = detector.detect(frame)
         hand_cards = infer_hand()
         elixir_estimate = infer_elixir_count_from_frame(frame)
-        tower_health = infer_tower_health_from_frame(frame)
     else:
         detect_future = executor.submit(detector.detect, frame)
         hand_future = executor.submit(infer_hand)
         elixir_future = executor.submit(infer_elixir_count_from_frame, frame)
-        tower_future = executor.submit(infer_tower_health_from_frame, frame)
         detections = detect_future.result()
         hand_cards = hand_future.result()
         elixir_estimate = elixir_future.result()
-        tower_health = tower_future.result()
+
+    # Tower HP has to wait for the detections: the OCR is anchored to the
+    # detected bar boxes so it follows the arena camera. Fixed crops are the
+    # fallback for the frames where no bar was detected at all.
+    tower_health = infer_tower_health_from_bars(frame, detections)
+    if tower_health is None:
+        tower_health = infer_tower_health_from_frame(frame)
 
     detections, board_ref = enrich_detections(detections, frame_w, frame_h)
     apply_tower_health_estimates(detections, tower_health)

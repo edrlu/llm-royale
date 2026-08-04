@@ -228,6 +228,35 @@ def _preprocess_tower_digits(crop: np.ndarray) -> list[np.ndarray]:
     return variants
 
 
+def _bar_is_friendly(crop: np.ndarray) -> bool:
+    """True for a blue (friendly) bar, False for a red/pink (enemy) one."""
+    hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+    hue, sat, val = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
+    red = ((hue <= 10) | (hue >= 165)) & (sat >= 110) & (val >= 90)
+    blue = (hue >= 95) & (hue <= 125) & (sat >= 110) & (val >= 90)
+    return int(blue.sum()) > int(red.sum())
+
+
+def _preprocess_blue_bar_digits(crop: np.ndarray) -> list[np.ndarray]:
+    """Variants for the friendly bars.
+
+    Friendly HP numbers are pale grey on a light blue fill, so the thresholds
+    that isolate white-on-pink enemy digits either swallow the digits into the
+    bar or eat them entirely. A high luminance cut and a low-saturation mask
+    both survive that contrast; the generic variants do not.
+    """
+    if crop.size == 0:
+        return []
+    enlarged = cv2.resize(crop, (max(1, crop.shape[1] * 6), max(1, crop.shape[0] * 6)), interpolation=cv2.INTER_CUBIC)
+    gray = cv2.cvtColor(enlarged, cv2.COLOR_BGR2GRAY)
+    gray = cv2.GaussianBlur(gray, (3, 3), 0)
+    hsv = cv2.cvtColor(enlarged, cv2.COLOR_BGR2HSV)
+
+    _, bright = cv2.threshold(gray, 190, 255, cv2.THRESH_BINARY)
+    low_sat = cv2.inRange(hsv, (0, 0, 120), (180, 120, 255))
+    return [255 - bright, 255 - low_sat]
+
+
 def _detect_tower_value(frame: np.ndarray, box: tuple) -> dict:
     x1, x2, y1, y2 = box
     crop = _crop_norm(frame, x1, x2, y1, y2)
@@ -249,40 +278,162 @@ def _detect_tower_value(frame: np.ndarray, box: tuple) -> dict:
     }
 
 
+# The tower-bar detection box starts with the level crown badge, which OCRs as
+# a stray leading digit. Dropping this fraction of the box width removes it.
+BAR_CROWN_FRACTION = 0.22
+
+TOWER_BAR_LABELS = {"tower-bar", "dagger-duchess-tower-bar"}
+KING_BAR_LABELS = {"king-tower-bar"}
+
+# Where each tower's HP bar sits, in normalized frame coordinates. Troop HP bars
+# and the occasional misdetection (a card-name banner reads as a bar) land in
+# mid-arena, so a bar is only accepted for a slot if it shows up near where that
+# tower actually is. The tolerance is wide enough to absorb the camera pan.
+EXPECTED_BAR_CENTERS = {
+    "enemy_left_tower": (0.22, 0.233),
+    "enemy_right_tower": (0.78, 0.233),
+    "enemy_king_tower": (0.50, 0.165),
+    "friendly_left_tower": (0.22, 0.644),
+    "friendly_right_tower": (0.78, 0.644),
+    "friendly_king_tower": (0.50, 0.790),
+}
+BAR_MATCH_MAX_DISTANCE = 0.09
+
+
+def _ocr_bar_value(frame: np.ndarray, bbox: dict, max_hp: int) -> dict:
+    """Read the HP number out of one detected tower bar.
+
+    Several preprocessing variants and page-segmentation modes are tried and the
+    readings are voted on, because any single pass mangles a digit now and then.
+    Readings above the tower's maximum HP are dropped outright: those are the
+    passes that glued the crown badge or a neighbouring glyph onto the number.
+    """
+    x1 = bbox["x1"] + int(BAR_CROWN_FRACTION * (bbox["x2"] - bbox["x1"]))
+    crop = frame[max(0, bbox["y1"]):bbox["y2"], max(0, x1):bbox["x2"]]
+    if crop.size == 0:
+        return {"value": None, "text": "", "ocr_confidence": None}
+
+    variants = (
+        _preprocess_blue_bar_digits(crop)
+        if _bar_is_friendly(crop)
+        else _preprocess_tower_digits(crop)
+    )
+
+    votes = {}
+    for variant in variants:
+        for psm in (7, 8, 13):
+            value, text, conf = _tesseract_digits(variant, psm=psm)
+            if value is None or not text or value > max_hp:
+                continue
+            entry = votes.setdefault(text, {"count": 0, "conf": -1.0, "value": value})
+            entry["count"] += 1
+            entry["conf"] = max(entry["conf"], conf)
+
+    if not votes:
+        return {"value": None, "text": "", "ocr_confidence": None}
+
+    text, entry = max(votes.items(), key=lambda item: (item[1]["count"], item[1]["conf"]))
+    return {
+        "value": entry["value"],
+        "text": text,
+        "ocr_confidence": round(entry["conf"], 2) if entry["conf"] >= 0 else None,
+    }
+
+
+def infer_tower_health_from_bars(frame: np.ndarray, detections: list) -> dict:
+    """Read tower HP from the detected bars rather than fixed screen crops.
+
+    The arena camera pans and zooms — most visibly when a tower falls or at the
+    end of a match — which slides the HP numbers out of any hardcoded box. The
+    detector already finds every tower bar, so anchoring the OCR to those boxes
+    tracks the camera for free. Returns None when no bars were detected, which
+    leaves the caller on the fixed-crop path.
+    """
+    height, width = frame.shape[:2]
+    slots = {}
+
+    for det in detections or []:
+        label = det.get("label")
+        bbox = det.get("bbox")
+        if not bbox or label not in (TOWER_BAR_LABELS | KING_BAR_LABELS):
+            continue
+        center_x = (bbox["x1"] + bbox["x2"]) / 2.0 / width
+        center_y = (bbox["y1"] + bbox["y2"]) / 2.0 / height
+
+        names = KING_BAR_LABELS if label in KING_BAR_LABELS else TOWER_BAR_LABELS
+        candidates = [
+            name for name in EXPECTED_BAR_CENTERS
+            if name.endswith("king_tower") == (names is KING_BAR_LABELS)
+        ]
+        best_name = None
+        best_distance = BAR_MATCH_MAX_DISTANCE
+        for name in candidates:
+            expected_x, expected_y = EXPECTED_BAR_CENTERS[name]
+            distance = ((center_x - expected_x) ** 2 + (center_y - expected_y) ** 2) ** 0.5
+            if distance < best_distance:
+                best_name, best_distance = name, distance
+        if best_name is None:
+            continue
+
+        # Duplicate detections of the same bar arrive from both models; keep
+        # whichever sits closest to where the tower belongs.
+        if best_name not in slots or best_distance < slots[best_name]["distance"]:
+            slots[best_name] = {"bbox": bbox, "distance": best_distance}
+
+    if not slots:
+        return None
+
+    raw = {}
+    for name, slot in slots.items():
+        max_hp = KING_TOWER_FULL_HP if name.endswith("king_tower") else PRINCESS_TOWER_FULL_HP
+        reading = _ocr_bar_value(frame, slot["bbox"], max_hp)
+        reading["bbox"] = slot["bbox"]
+        raw[name] = reading
+
+    return _resolve_tower_health(raw, source="detected tower bars")
+
+
 def infer_tower_health_from_frame(frame: np.ndarray) -> dict:
     raw = {name: _detect_tower_value(frame, box) for name, *box in TOWER_BOXES}
+    return _resolve_tower_health(raw, source="fixed screen crops")
+
+
+def _resolve_tower_health(raw: dict, source: str) -> dict:
+    """Turn per-tower OCR readings into resolved HP values.
+
+    A tower whose bar could not be read is treated as destroyed, since the bar
+    disappears with the tower. The one exception is a king whose two princess
+    towers both read fine: kings take no damage until a princess falls, so that
+    king is known to be at full HP even though its bar is hidden.
+    """
     resolved = {}
+    empty = {"value": None, "text": "", "ocr_confidence": None}
 
     for side in ("enemy", "friendly"):
-        left = raw[f"{side}_left_tower"]["value"]
-        right = raw[f"{side}_right_tower"]["value"]
-        king = raw[f"{side}_king_tower"]["value"]
+        left = raw.get(f"{side}_left_tower", empty)
+        right = raw.get(f"{side}_right_tower", empty)
+        king = raw.get(f"{side}_king_tower", empty)
 
-        resolved[f"{side}_left_tower"] = {
-            **raw[f"{side}_left_tower"],
-            "value": 0 if left is None else left,
-            "status": "ocr_missing_assumed_dead" if left is None else "ocr_detected",
-            "max_hp": PRINCESS_TOWER_FULL_HP,
-        }
-        resolved[f"{side}_right_tower"] = {
-            **raw[f"{side}_right_tower"],
-            "value": 0 if right is None else right,
-            "status": "ocr_missing_assumed_dead" if right is None else "ocr_detected",
-            "max_hp": PRINCESS_TOWER_FULL_HP,
-        }
+        for lane, reading in (("left", left), ("right", right)):
+            resolved[f"{side}_{lane}_tower"] = {
+                **reading,
+                "value": 0 if reading.get("value") is None else reading["value"],
+                "status": "ocr_missing_assumed_dead" if reading.get("value") is None else "ocr_detected",
+                "max_hp": PRINCESS_TOWER_FULL_HP,
+            }
 
-        if left is not None and right is not None:
+        if left.get("value") is not None and right.get("value") is not None:
             king_value = KING_TOWER_FULL_HP
             king_status = "assumed_full_hp_from_both_princess_towers_visible"
-        elif king is None:
+        elif king.get("value") is None:
             king_value = 0
             king_status = "ocr_missing_assumed_dead"
         else:
-            king_value = king
+            king_value = king["value"]
             king_status = "ocr_detected"
 
         resolved[f"{side}_king_tower"] = {
-            **raw[f"{side}_king_tower"],
+            **king,
             "value": king_value,
             "status": king_status,
             "max_hp": KING_TOWER_FULL_HP,
@@ -291,8 +442,9 @@ def infer_tower_health_from_frame(frame: np.ndarray) -> dict:
     return {
         "towers": resolved,
         "notes": [
-            "Tower health uses hardcoded OCR crops with pytesseract.",
-            "If both princess towers on a side OCR successfully, that side's king is forced to full HP.",
-            "If a tower OCR crop has no number, it is treated as dead for now.",
+            f"Tower health read with pytesseract from {source}.",
+            "If both princess towers on a side read successfully, that side's king is forced to full HP.",
+            "A tower whose bar could not be read is treated as dead.",
         ],
+        "source": source,
     }
