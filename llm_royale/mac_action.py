@@ -39,7 +39,16 @@ BOUNDS_TTL_SEC = 1.0
 # Steps used to interpolate a drag. Clash Royale ignores a down/up pair with no
 # movement in between when placing a card, so the intermediate drag events are
 # required, not cosmetic.
-DRAG_STEPS = 12
+DRAG_STEPS = 20
+
+# The game has to see the card picked up before it will follow the drag, and it
+# has to see the cursor settle before it commits the placement. Without these
+# pauses the whole gesture lands inside one frame of the game's input handling
+# and it drops the card: measured 32 of 39 placements never charged, including
+# ones made with 9 elixir in hand.
+DRAG_HOLD_BEFORE_MS = 80
+DRAG_SETTLE_BEFORE_RELEASE_MS = 70
+DEFAULT_DRAG_DURATION_MS = 260
 
 
 def _post(event_type, x: float, y: float) -> None:
@@ -150,7 +159,8 @@ class MirrorActionExecutor(BaseActionExecutor):
             "screen_y": round(screen_y, 1),
         }
 
-    def swipe_device(self, x1: int, y1: int, x2: int, y2: int, duration_ms: int = 120) -> Dict:
+    def swipe_device(self, x1: int, y1: int, x2: int, y2: int,
+                     duration_ms: int = DEFAULT_DRAG_DURATION_MS) -> Dict:
         self.ensure_device_ready()
         saved = self._cursor_position() if self.restore_cursor else None
         focused = self._focus()
@@ -161,11 +171,13 @@ class MirrorActionExecutor(BaseActionExecutor):
         started = time.perf_counter()
         _post(kCGEventMouseMoved, start_x, start_y)
         _post(kCGEventLeftMouseDown, start_x, start_y)
+        time.sleep(DRAG_HOLD_BEFORE_MS / 1000.0)
         for step in range(1, DRAG_STEPS + 1):
             t = step / DRAG_STEPS
             _post(kCGEventLeftMouseDragged, start_x + (end_x - start_x) * t, start_y + (end_y - start_y) * t)
             if step_sleep:
                 time.sleep(step_sleep)
+        time.sleep(DRAG_SETTLE_BEFORE_RELEASE_MS / 1000.0)
         _post(kCGEventLeftMouseUp, end_x, end_y)
         elapsed_ms = (time.perf_counter() - started) * 1000.0
 

@@ -147,7 +147,7 @@ class BaseActionExecutor:
         slot_num = int(selected_slot["slot"])
         slot_anchor = self.hand_slot_to_device(slot_num)
         target_x, target_y = self.capture_to_device(x, y, capture_width, capture_height)
-        swipe_result = self.swipe_device(slot_anchor["x"], slot_anchor["y"], target_x, target_y, duration_ms=110)
+        swipe_result = self.swipe_device(slot_anchor["x"], slot_anchor["y"], target_x, target_y)
         if swipe_result["returncode"] != 0:
             return {
                 "status": "failed",
