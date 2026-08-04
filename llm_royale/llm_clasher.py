@@ -58,6 +58,12 @@ MATCH_END_CONFIRM_SNAPSHOTS = 6
 # placements in one match before this guard.
 SAME_CARD_REPLAY_BLOCK_SEC = 2.5
 
+# Upper bound on waiting for the hand to stop showing a card that was just
+# played. The classifier reports None for a greyed-out slot, so a card can go
+# unseen for reasons other than having been spent; without a ceiling that would
+# block the card indefinitely.
+SAME_CARD_HAND_CLEAR_MAX_SEC = 6.0
+
 
 class TowerHealthTracker:
     """Smooths per-tower HP readings across snapshots.
@@ -1058,11 +1064,23 @@ def main() -> int:
             print(f"[AI Action] Decision: {format_ai_decision(decision)}")
 
             card = decision.get("card")
+            hand_labels = {
+                slot.get("label")
+                for slot in (snapshot.get("hand_cards_inferred", {}) or {}).get("slots", []) or []
+            }
+            since_played = now - last_played_ts
+            # The card is only really gone once the hand stops reporting it. Time
+            # alone is a guess at how far behind the capture is; this waits for
+            # the evidence, with a fixed window underneath for the case where the
+            # classifier cannot see the slot at all.
+            stale_hand = since_played < SAME_CARD_REPLAY_BLOCK_SEC or (
+                card in hand_labels and since_played < SAME_CARD_HAND_CLEAR_MAX_SEC
+            )
             if (
                 decision.get("action") == "place_card"
                 and card is not None
                 and card == last_played_card
-                and now - last_played_ts < SAME_CARD_REPLAY_BLOCK_SEC
+                and stale_hand
             ):
                 print(f"[AI Action] Skipped: {card} was just played, hand is stale")
                 last_sequence = sequence
