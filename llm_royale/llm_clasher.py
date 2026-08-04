@@ -56,13 +56,11 @@ MATCH_END_CONFIRM_SNAPSHOTS = 6
 # the hand classifier still showing the pre-play hand — the capture is a few
 # hundred ms behind — and the swipe does nothing. Measured at 20% of all
 # placements in one match before this guard.
-SAME_CARD_REPLAY_BLOCK_SEC = 2.5
-
-# Upper bound on waiting for the hand to stop showing a card that was just
-# played. The classifier reports None for a greyed-out slot, so a card can go
-# unseen for reasons other than having been spent; without a ceiling that would
-# block the card indefinitely.
-SAME_CARD_HAND_CLEAR_MAX_SEC = 6.0
+# Elixir readings around a placement, used to tell whether the game actually
+# accepted the card. Verification by detection cannot answer that on its own:
+# spells leave no unit behind, and small troops are easy for the detector to
+# miss entirely.
+ELIXIR_DEBIT_TOLERANCE = 0.6
 
 
 class TowerHealthTracker:
@@ -919,6 +917,7 @@ def main() -> int:
     out_of_battle_streak = 0
     last_played_card = None
     last_played_ts = 0.0
+    pending_elixir_check = None
     try:
         while True:
             if stopper.should_stop():
@@ -939,6 +938,20 @@ def main() -> int:
                 continue
 
             latest["snapshot"] = snapshot
+
+            if pending_elixir_check is not None and sequence > pending_elixir_check["sequence"]:
+                before = pending_elixir_check["before"]
+                after = (snapshot.get("elixir_inferred", {}) or {}).get("count_estimate")
+                cost = pending_elixir_check["cost"]
+                if isinstance(before, (int, float)) and isinstance(after, (int, float)) and cost:
+                    spent = before - after
+                    charged = spent >= cost - ELIXIR_DEBIT_TOLERANCE
+                    print(
+                        f"[Elixir] {pending_elixir_check['card']} cost={cost} "
+                        f"before={before} after={after} spent={spent} "
+                        f"charged={'yes' if charged else 'NO'}"
+                    )
+                pending_elixir_check = None
             # Default to "not in a battle" when the capture did not say. The
             # opposite default made a snapshot without the field look like a
             # battle, so the very next one counted as a match finishing.
@@ -1063,37 +1076,6 @@ def main() -> int:
             latest["decision"] = decision
             print(f"[AI Action] Decision: {format_ai_decision(decision)}")
 
-            card = decision.get("card")
-            hand_labels = {
-                slot.get("label")
-                for slot in (snapshot.get("hand_cards_inferred", {}) or {}).get("slots", []) or []
-            }
-            since_played = now - last_played_ts
-            # Replaying the card that was just spent needs positive evidence it
-            # has come back: seen in a labeled slot. Absence is not evidence —
-            # when no slot claims the card the executor falls back to "there is
-            # exactly one unlabeled slot, so it must be there", and the card just
-            # played is the one least likely to actually be in hand. That
-            # fallback is what the remaining duplicates were coming through.
-            # Immediately after a play the hand still shows the card *because*
-            # it is stale, so seeing it there proves nothing for the first
-            # moments — hence the flat block underneath. After that, only
-            # positive evidence that the card came back releases the guard.
-            redrawn = card in hand_labels
-            stale_hand = since_played < SAME_CARD_REPLAY_BLOCK_SEC or (
-                since_played < SAME_CARD_HAND_CLEAR_MAX_SEC and not redrawn
-            )
-            if (
-                decision.get("action") == "place_card"
-                and card is not None
-                and card == last_played_card
-                and stale_hand
-            ):
-                print(f"[AI Action] Skipped: {card} was just played, hand is stale")
-                last_sequence = sequence
-                last_signature = signature
-                continue
-
             result = executor.execute_decision(decision, snapshot)
             latest["result"] = result
             print(f"[AI Action] Result: {format_ai_result(result)}")
@@ -1108,6 +1090,14 @@ def main() -> int:
             planner.recent_actions.append(action_record)
 
             if result.get("status") == "executed" and result.get("card"):
+                # Elixir before the play, so the next snapshot can say whether
+                # the game actually charged us for it.
+                pending_elixir_check = {
+                    "card": result["card"],
+                    "cost": CARD_COSTS.get(result["card"]),
+                    "before": (snapshot.get("elixir_inferred", {}) or {}).get("count_estimate"),
+                    "sequence": sequence,
+                }
                 last_played_card = result["card"]
                 last_played_ts = now
                 cycle_tracker.record_play(result["card"])
