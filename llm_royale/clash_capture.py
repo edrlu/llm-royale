@@ -39,6 +39,7 @@ from .capture_config import (
     HAND_SLOT_CENTERS,
 )
 from .cycle_tracker import CardSlotClassifier, crop_hand_slots
+from .match_navigator import screen_kind
 from .hud_ocr import (
     infer_elixir_count_from_frame as infer_elixir_count_from_ocr,
     infer_tower_health_from_frame,
@@ -963,6 +964,7 @@ def run(args):
                 continue
 
             t0 = time.perf_counter()
+            screen = screen_kind(frame)
             frame_state = infer_frame_state(frame, frame_w, frame_h, detector, hand_classifier, executor)
             process_ms = (time.perf_counter() - t0) * 1000.0
             sequence += 1
@@ -985,6 +987,10 @@ def run(args):
                     "total_latency_ms": round(system_ms + process_ms, 2),
                 },
                 "schema_version": "2",
+                "screen": {
+                    "kind": screen,
+                    "in_battle": screen == "battle",
+                },
                 "summary": {
                     "detections": len(detections),
                     "troops": sum(d["category"] == "troop" for d in detections),

@@ -19,6 +19,7 @@ from typing import Optional
 import requests
 
 from .mac_action import MirrorActionExecutor
+from .match_navigator import BATTLE_BUTTON, BATTLE_TAB, OK_BUTTON
 from .capture_config import PRINCESS_TOWER_FULL_HP, KING_TOWER_FULL_HP
 from .cycle_tracker import CycleTracker
 
@@ -740,6 +741,14 @@ def main() -> int:
     parser.add_argument("--python-bin", default=sys.executable)
     parser.add_argument("--cooldown-sec", type=float, default=0.5)
     parser.add_argument(
+        "--auto-battle", action="store_true",
+        help="Tap through menus and start a new battle whenever one is not running",
+    )
+    parser.add_argument(
+        "--battle-load-sec", type=float, default=12.0,
+        help="How long to wait after pressing Battle before tapping again",
+    )
+    parser.add_argument(
         "--no-wait", action="store_true",
         help="Skip the press-SPACE gate and start the loop immediately",
     )
@@ -761,6 +770,8 @@ def main() -> int:
     last_signature = None
     backoff_until = 0.0
     pending_action = None
+    menu_attempt = 0
+    next_menu_tap_ts = 0.0
     try:
         while True:
             snapshot = read_snapshot(args.state_json)
@@ -775,6 +786,30 @@ def main() -> int:
             if sequence is None or sequence == last_sequence:
                 time.sleep(0.2)
                 continue
+
+            if args.auto_battle and not snapshot.get("screen", {}).get("in_battle", True):
+                # Outside a battle there is nothing to plan, so tap through the
+                # menus instead of paying for an LLM call on a home screen.
+                kind = snapshot.get("screen", {}).get("kind", "other")
+                now = time.time()
+                if now >= next_menu_tap_ts:
+                    if kind == "home":
+                        target = BATTLE_BUTTON
+                    else:
+                        # Rotate between the two dismissals: the result banner's
+                        # OK, and the bottom Battle tab that returns home from
+                        # anywhere else.
+                        target = OK_BUTTON if menu_attempt % 2 == 0 else BATTLE_TAB
+                    print(f"[Menu] screen={kind} tapping {target}")
+                    executor.tap_normalized(*target)
+                    menu_attempt += 1
+                    # A battle takes a few seconds to load; tapping faster than
+                    # that just queues taps into the loading screen.
+                    next_menu_tap_ts = now + (args.battle_load_sec if kind == "home" else 2.0)
+                last_sequence = sequence
+                pending_action = None
+                continue
+            menu_attempt = 0
 
             if pending_action is not None:
                 verification = verify_action(snapshot, pending_action)
