@@ -9,6 +9,11 @@ from .capture_config import (
     ELIXIR_BAR_X_UPPER_NORM,
     ELIXIR_BAR_Y_LOWER_NORM,
     ELIXIR_BAR_Y_UPPER_NORM,
+    ELIXIR_PIP_COUNT,
+    ELIXIR_PIP_X_LEFT_NORM,
+    ELIXIR_PIP_X_RIGHT_NORM,
+    ELIXIR_PIP_Y_LOWER_NORM,
+    ELIXIR_PIP_Y_UPPER_NORM,
     ENEMY_KING_TOWER_HEALTH_X_LOWER_NORM,
     ENEMY_KING_TOWER_HEALTH_X_UPPER_NORM,
     ENEMY_KING_TOWER_HEALTH_Y_LOWER_NORM,
@@ -108,7 +113,58 @@ def _preprocess_elixir_digits(strip: np.ndarray) -> list[np.ndarray]:
     return variants
 
 
+def count_elixir_pips(frame: np.ndarray) -> dict:
+    """Count filled segments on the elixir bar.
+
+    Each of the ten segments is either bright pink (filled) or dark blue
+    (empty), which is a far stronger signal than the digit above it. Two classes
+    of pixel are excluded before the vote: near-white ones, because the count
+    digit and the "Max" caption are drawn over the left of the bar, and very
+    dark ones, which are the segment dividers and glyph outlines.
+    """
+    band = _crop_norm(
+        frame,
+        ELIXIR_PIP_X_LEFT_NORM,
+        ELIXIR_PIP_X_RIGHT_NORM,
+        ELIXIR_PIP_Y_LOWER_NORM,
+        ELIXIR_PIP_Y_UPPER_NORM,
+    )
+    if band.size == 0:
+        return {"count": None, "fractions": [], "notes": ["empty elixir pip band"]}
+
+    hsv = cv2.cvtColor(band, cv2.COLOR_BGR2HSV)
+    hue, sat, val = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
+    # Magenta sits near H=150 in OpenCV's 0-179 hue range.
+    pink = (hue >= 135) & (hue <= 175) & (sat >= 90) & (val >= 90)
+    countable = (sat >= 60) & (val >= 50)
+
+    width = band.shape[1]
+    fractions = []
+    for index in range(ELIXIR_PIP_COUNT):
+        x1 = int(round(index * width / ELIXIR_PIP_COUNT))
+        x2 = int(round((index + 1) * width / ELIXIR_PIP_COUNT))
+        # Trim the segment edges: the dividers between pips are dark and would
+        # otherwise drag a filled segment's ratio down.
+        margin = max(1, (x2 - x1) // 6)
+        x1, x2 = x1 + margin, max(x1 + margin + 1, x2 - margin)
+        total = int(countable[:, x1:x2].sum())
+        filled = int((pink & countable)[:, x1:x2].sum())
+        fractions.append(round(filled / total, 3) if total else 0.0)
+
+    # Elixir fills left to right, so the count is the length of the leading run
+    # of filled segments — not the total, which a stray highlight could inflate.
+    count = 0
+    for fraction in fractions:
+        if fraction < 0.5:
+            break
+        count += 1
+
+    return {"count": count, "fractions": fractions, "notes": []}
+
+
 def infer_elixir_count_from_frame(frame: np.ndarray) -> dict:
+    pips = count_elixir_pips(frame)
+
     strip = _crop_norm(
         frame,
         ELIXIR_BAR_X_LOWER_NORM,
@@ -130,9 +186,11 @@ def infer_elixir_count_from_frame(frame: np.ndarray) -> dict:
         best_value, best_text, best_conf = candidates[0]
 
     return {
-        "count_estimate": best_value,
-        "model_count_estimate": best_value,
+        "count_estimate": pips["count"],
+        "model_count_estimate": pips["count"],
         "detector_count_estimate": None,
+        "pip_fractions": pips["fractions"],
+        "ocr_digit_estimate": best_value,
         "strip_bbox_norm": {
             "x1": round(ELIXIR_BAR_X_LOWER_NORM, 4),
             "x2": round(ELIXIR_BAR_X_UPPER_NORM, 4),
@@ -142,7 +200,7 @@ def infer_elixir_count_from_frame(frame: np.ndarray) -> dict:
         "ocr_text": best_text,
         "ocr_confidence": round(best_conf, 2) if best_conf >= 0 else None,
         "notes": [
-            "Primary estimate uses pytesseract on the configured elixir HUD crop.",
+            "Count comes from filled elixir bar segments; the OCR digit is a cross-check only.",
         ],
     }
 

@@ -13,7 +13,6 @@ import json
 import os
 import shutil
 import subprocess
-import threading
 import time
 from datetime import datetime, timezone
 from typing import Optional
@@ -27,13 +26,12 @@ from .capture_config import PRESETS
 from .clash_capture import (
     ClashDetector,
     find_bin,
-    get_device_resolution,
     infer_frame_state,
-    start_capture,
 )
+from .mirror_capture import MirrorFrameSource
 from .cycle_tracker import CardSlotClassifier, CycleTracker
 from .llm_clasher import (
-    AndroidActionExecutor,
+    MirrorActionExecutor,
     ElixirClock,
     OpenAIPlanner,
     load_dotenv,
@@ -196,48 +194,23 @@ def main() -> int:
     parser.add_argument("--interval-sec", type=float, default=0.4)
     parser.add_argument("--cooldown-sec", type=float, default=0.5)
     parser.add_argument("--max-size", type=int, default=None)
-    parser.add_argument("--bit-rate", type=str, default=None)
+    parser.add_argument("--mirror-fps", type=float, default=30.0)
     parser.add_argument("--video-fps", type=float, default=4.0)
     args = parser.parse_args()
 
     wait_for_space()
 
     preset = PRESETS[args.preset]
-    adb_bin = find_bin("adb")
     ffmpeg_bin = find_bin("ffmpeg")
-    dev_w, dev_h = get_device_resolution(adb_bin)
-    if dev_w == 0:
-        print("[ERROR] Device not found or not authorized.")
-        return 1
 
     max_size = args.max_size if args.max_size else preset.max_size
-    max_dim = max(dev_w, dev_h)
-    if max_dim > max_size:
-        scale = max_size / max_dim
-        frame_w = int(dev_w * scale) & ~1
-        frame_h = int(dev_h * scale) & ~1
-    else:
-        frame_w = dev_w & ~1
-        frame_h = dev_h & ~1
-
-    bit_rate = args.bit_rate if args.bit_rate else preset.bit_rate
-    if bit_rate.upper().endswith("M"):
-        bit_rate_int = int(bit_rate[:-1]) * 1_000_000
-    elif bit_rate.upper().endswith("K"):
-        bit_rate_int = int(bit_rate[:-1]) * 1_000
-    else:
-        bit_rate_int = int(bit_rate)
-
-    adb_cmd = [
-        adb_bin, "exec-out", "screenrecord",
-        "--output-format=h264", f"--bit-rate={bit_rate_int}", "-",
-    ]
-    ffmpeg_cmd = [
-        ffmpeg_bin, "-hide_banner", "-loglevel", "error",
-        "-f", "h264", "-i", "pipe:0",
-        "-vf", f"scale={frame_w}:{frame_h}",
-        "-f", "rawvideo", "-pix_fmt", "bgr24", "-an", "pipe:1",
-    ]
+    source = MirrorFrameSource(max_size=max_size, target_fps=args.mirror_fps)
+    info = source.probe()
+    print(
+        f"[INFO] iPhone Mirroring window {info['window_id']} "
+        f"native {info['native']['width']}x{info['native']['height']}"
+    )
+    frame_w, frame_h = source.frame_width, source.frame_height
 
     out_dir = next_debug_dir(os.path.join(REPO_ROOT, "debug", "vid"))
     video_path = os.path.join(out_dir, "debugger.mp4")
@@ -252,44 +225,12 @@ def main() -> int:
     detector = ClashDetector(preset)
     hand_classifier = CardSlotClassifier()
     planner = OpenAIPlanner(args.model)
-    executor = AndroidActionExecutor()
+    executor = MirrorActionExecutor()
     cycle_tracker = CycleTracker()
     elixir_clock = ElixirClock()
     elixir_clock.start()
 
-    frame_size = frame_w * frame_h * 3
-    lock = threading.Lock()
-    latest_frame = [None]
-    latest_system_ms = [0.0]
-    running = threading.Event()
-    running.set()
-
-    def reader_loop():
-        while running.is_set():
-            adb_proc, ffmpeg_proc = start_capture(adb_cmd, ffmpeg_cmd)
-            try:
-                while running.is_set():
-                    t0 = time.perf_counter()
-                    raw = ffmpeg_proc.stdout.read(frame_size)
-                    dt = (time.perf_counter() - t0) * 1000.0
-                    if len(raw) != frame_size:
-                        if ffmpeg_proc.poll() is not None or adb_proc.poll() is not None:
-                            break
-                        continue
-                    img = np.frombuffer(raw, dtype=np.uint8).reshape((frame_h, frame_w, 3))
-                    with lock:
-                        latest_frame[0] = img
-                        latest_system_ms[0] = dt
-            finally:
-                ffmpeg_proc.kill()
-                adb_proc.kill()
-                ffmpeg_proc.wait()
-                adb_proc.wait()
-            if running.is_set():
-                time.sleep(0.2)
-
-    thread = threading.Thread(target=reader_loop, daemon=True)
-    thread.start()
+    source.start()
 
     sequence = 0
     last_signature = None
@@ -302,9 +243,7 @@ def main() -> int:
     print(f"[INFO] Saving debugger output to {out_dir}")
     try:
         while True:
-            with lock:
-                frame = None if latest_frame[0] is None else latest_frame[0].copy()
-                system_ms = latest_system_ms[0]
+            frame, system_ms = source.read_latest()
             if frame is None:
                 time.sleep(0.05)
                 continue
@@ -379,8 +318,7 @@ def main() -> int:
     except KeyboardInterrupt:
         print("\n[INFO] Shutting down debugger...")
     finally:
-        running.clear()
-        thread.join(timeout=1)
+        source.stop()
         executor_pool.shutdown(wait=False)
         if frame_index > 0:
             try:

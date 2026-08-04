@@ -53,6 +53,20 @@ INNER_CROP = 0.10
 MIN_COMBINED_SCORE = 7.5
 MIN_MARGIN_SCORE = 1.0
 
+# Clash Royale renders a card in greyscale while you cannot afford it, which
+# wipes out the hue/saturation histogram the classifier leans on. Below this
+# mean saturation a slot is treated as greyed out and scored on a luminance
+# histogram instead, so the hand stays readable at low elixir.
+GREYED_CARD_MAX_SATURATION = 60.0
+
+# A luminance histogram discriminates far less than a colour one, so a greyed
+# slot has to clear a much wider margin before its label is trusted. A wrong
+# label is worse than no label: the executor picks the slot to swipe by label,
+# so a misread greyed slot would play the wrong card. Below this bar the slot
+# reports None and the planner simply treats it as unknown.
+GREYED_MIN_COMBINED_SCORE = 12.0
+GREYED_MIN_MARGIN_SCORE = 6.0
+
 
 def crop_hand_slots(frame: np.ndarray) -> List[dict]:
     h, w = frame.shape[:2]
@@ -103,6 +117,20 @@ def _histogram_similarity(img1: np.ndarray, img2: np.ndarray) -> float:
     cv2.normalize(hist1, hist1)
     cv2.normalize(hist2, hist2)
     return float(cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL))
+
+
+def _gray_histogram_similarity(img1: np.ndarray, img2: np.ndarray) -> float:
+    gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+    hist1 = cv2.calcHist([gray1], [0], None, [64], [0, 256])
+    hist2 = cv2.calcHist([gray2], [0], None, [64], [0, 256])
+    cv2.normalize(hist1, hist1)
+    cv2.normalize(hist2, hist2)
+    return float(cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL))
+
+
+def _mean_saturation(img: np.ndarray) -> float:
+    return float(cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 1].mean())
 
 
 class CardSlotClassifier:
@@ -167,6 +195,7 @@ class CardSlotClassifier:
 
         query_proc = _preprocess_card(image_bgr, size=self.image_size)
         _, query_des = _compute_orb_features(query_proc, self.orb)
+        greyed = _mean_saturation(query_proc) < GREYED_CARD_MAX_SATURATION
 
         results = []
         best_label = None
@@ -186,7 +215,10 @@ class CardSlotClassifier:
                         good.append(m)
                 orb_score = float(len(good))
 
-            hist_score = _histogram_similarity(query_proc, ref_data["image"])
+            if greyed:
+                hist_score = _gray_histogram_similarity(query_proc, ref_data["image"])
+            else:
+                hist_score = _histogram_similarity(query_proc, ref_data["image"])
             combined_score = orb_score + 20.0 * hist_score
             results.append({
                 "label": label,
@@ -203,15 +235,18 @@ class CardSlotClassifier:
         top2 = results[1] if len(results) > 1 else None
         margin = top1["combined_score"] - (top2["combined_score"] if top2 else 0.0)
 
+        min_combined = GREYED_MIN_COMBINED_SCORE if greyed else MIN_COMBINED_SCORE
+        min_margin = GREYED_MIN_MARGIN_SCORE if greyed else MIN_MARGIN_SCORE
         accepted = (
-            top1["combined_score"] >= MIN_COMBINED_SCORE
-            and margin >= MIN_MARGIN_SCORE
+            top1["combined_score"] >= min_combined
+            and margin >= min_margin
         )
         confidence = max(0.0, min(0.9999, margin / max(top1["combined_score"], 1.0)))
 
         return {
             "label": best_label if accepted else None,
             "raw_label": best_label if accepted else None,
+            "greyed": greyed,
             "confidence": confidence if accepted else 0.0,
             "margin": round(margin, 4),
             "best_score": round(top1["combined_score"], 4),

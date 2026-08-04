@@ -18,7 +18,7 @@ from typing import Optional
 
 import requests
 
-from .action import AndroidActionExecutor
+from .mac_action import MirrorActionExecutor
 from .capture_config import PRINCESS_TOWER_FULL_HP, KING_TOWER_FULL_HP
 from .cycle_tracker import CycleTracker
 
@@ -138,6 +138,11 @@ def load_dotenv(path: str = ".env") -> None:
 
 
 def wait_for_space() -> None:
+    if not sys.stdin.isatty():
+        # Unattended runs (background shells, CI, cron) have no terminal to read
+        # a keypress from; starting straight away is the only sane behaviour.
+        print("[INFO] stdin is not a terminal, starting immediately.")
+        return
     print("[INFO] Press SPACE to start the capture/LLM loop. Press Ctrl-C to quit.")
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
@@ -734,13 +739,18 @@ def main() -> int:
     parser.add_argument("--decision-json", default="llm_clasher_decision.json")
     parser.add_argument("--python-bin", default=sys.executable)
     parser.add_argument("--cooldown-sec", type=float, default=0.5)
+    parser.add_argument(
+        "--no-wait", action="store_true",
+        help="Skip the press-SPACE gate and start the loop immediately",
+    )
     args = parser.parse_args()
 
-    wait_for_space()
+    if not args.no_wait:
+        wait_for_space()
 
     worker = CaptureWorker(args.python_bin, args.state_json)
     planner = OpenAIPlanner(args.model)
-    executor = AndroidActionExecutor()
+    executor = MirrorActionExecutor()
     cycle_tracker = CycleTracker()
     elixir_clock = ElixirClock()
     elixir_clock.start()

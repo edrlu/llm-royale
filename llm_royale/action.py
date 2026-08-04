@@ -1,119 +1,51 @@
 #!/usr/bin/env python3
 """
-Android device actions for Clash Royale.
+Device actions for Clash Royale.
+
+The concrete backend lives in `mac_action.MirrorActionExecutor`, which drives a
+real iPhone through the macOS "iPhone Mirroring" window. This module holds the
+device-agnostic half: normalized coordinates, hand slot geometry, and turning a
+planner decision into taps and drags.
 """
 
-import shutil
-import subprocess
 import sys
 import time
 from typing import Dict, Optional
 
 
+# Tap targets for the four hand slots, measured on the iPhone Mirroring window.
+# These must stay in sync with HAND_SLOT_CENTERS in capture_config: that module
+# reads a slot's card art at these columns, and this one taps it.
 CARD_SLOT_X_NORM = {
-    1: 0.35,
-    2: 0.50,
-    3: 0.68,
-    4: 0.83,
+    1: 0.317,
+    2: 0.490,
+    3: 0.663,
+    4: 0.836,
 }
-CARD_SLOT_Y_NORM = 0.91
+CARD_SLOT_Y_NORM = 0.880
 
 
-def find_adb() -> str:
-    adb = shutil.which("adb")
-    if adb:
-        return adb
-    for candidate in ("/opt/homebrew/bin/adb", "/usr/local/bin/adb"):
-        if shutil.which(candidate):
-            return candidate
-    raise RuntimeError("adb not found")
+class BaseActionExecutor:
+    """Device-agnostic half of the action layer.
 
+    Subclasses supply three primitives in device coordinate space —
+    `ensure_device_ready`, `tap_device`, `swipe_device` — plus `device_width`
+    and `device_height`. Everything above that (normalized coords, hand slot
+    selection, decision execution) is backend independent.
+    """
 
-def list_connected_devices(adb_bin: str) -> list[str]:
-    out = subprocess.check_output(
-        [adb_bin, "devices"],
-        stderr=subprocess.DEVNULL,
-        timeout=5,
-    ).decode(errors="replace")
-    devices = []
-    for line in out.splitlines()[1:]:
-        parts = line.strip().split()
-        if len(parts) >= 2 and parts[1] == "device":
-            devices.append(parts[0])
-    return devices
-
-
-def get_device_resolution(adb_bin: str) -> tuple[int, int]:
-    out = subprocess.check_output(
-        [adb_bin, "shell", "wm", "size"],
-        stderr=subprocess.DEVNULL,
-        timeout=5,
-    ).decode().strip()
-    last_line = out.splitlines()[-1]
-    width_s, height_s = last_line.split(":")[-1].strip().split("x")
-    return int(width_s), int(height_s)
-
-
-class AndroidActionExecutor:
-    def __init__(self):
-        self.adb_bin = find_adb()
-        self.device_width = None
-        self.device_height = None
-        self.device_serial = None
+    device_width = None
+    device_height = None
+    device_serial = None
 
     def ensure_device_ready(self) -> None:
-        subprocess.run([self.adb_bin, "start-server"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        devices = list_connected_devices(self.adb_bin)
-        if not devices:
-            raise RuntimeError(
-                "No Android device is connected through adb. Check USB/debugging and run `adb devices`."
-            )
-        self.device_serial = devices[0]
-        if self.device_width is None or self.device_height is None:
-            try:
-                self.device_width, self.device_height = get_device_resolution(self.adb_bin)
-            except subprocess.CalledProcessError as e:
-                raise RuntimeError(
-                    "adb found a device, but `adb shell wm size` failed. Unlock the phone and confirm USB debugging."
-                ) from e
+        raise NotImplementedError
 
     def tap_device(self, x: int, y: int) -> Dict:
-        self.ensure_device_ready()
-        cmd = [self.adb_bin, "shell", "input", "tap", str(x), str(y)]
-        started = time.time()
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        duration_ms = (time.time() - started) * 1000.0
-        return {
-            "cmd": cmd,
-            "returncode": proc.returncode,
-            "stdout": proc.stdout.strip(),
-            "stderr": proc.stderr.strip(),
-            "duration_ms": round(duration_ms, 2),
-            "x": x,
-            "y": y,
-        }
+        raise NotImplementedError
 
     def swipe_device(self, x1: int, y1: int, x2: int, y2: int, duration_ms: int = 120) -> Dict:
-        self.ensure_device_ready()
-        cmd = [
-            self.adb_bin, "shell", "input", "swipe",
-            str(x1), str(y1), str(x2), str(y2), str(duration_ms),
-        ]
-        started = time.time()
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        elapsed_ms = (time.time() - started) * 1000.0
-        return {
-            "cmd": cmd,
-            "returncode": proc.returncode,
-            "stdout": proc.stdout.strip(),
-            "stderr": proc.stderr.strip(),
-            "duration_ms": round(elapsed_ms, 2),
-            "x1": x1,
-            "y1": y1,
-            "x2": x2,
-            "y2": y2,
-            "swipe_duration_ms": duration_ms,
-        }
+        raise NotImplementedError
 
     def tap_normalized(self, x_norm: float, y_norm: float) -> Dict:
         self.ensure_device_ready()
@@ -219,7 +151,7 @@ class AndroidActionExecutor:
         if swipe_result["returncode"] != 0:
             return {
                 "status": "failed",
-                "reason": "adb swipe command failed",
+                "reason": "swipe command failed",
                 "debug": {
                     "device_serial": self.device_serial,
                     "device_resolution": {"width": self.device_width, "height": self.device_height},

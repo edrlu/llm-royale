@@ -57,42 +57,6 @@ def find_bin(name: str) -> str:
     sys.exit(1)
 
 
-def drain_pipe(pipe, prefix):
-    for line in pipe:
-        text = line.decode(errors="replace").strip()
-        if text:
-            print(f"[{prefix}] {text}", file=sys.stderr)
-
-
-def get_device_resolution(adb_bin: str) -> tuple:
-    try:
-        out = subprocess.check_output(
-            [adb_bin, "shell", "wm", "size"],
-            timeout=5, stderr=subprocess.DEVNULL
-        ).decode().strip()
-        last_line = out.strip().split("\n")[-1]
-        parts = last_line.split(":")[-1].strip().split("x")
-        return int(parts[0]), int(parts[1])
-    except Exception as e:
-        print(f"[ERROR] Could not get device resolution: {e}")
-        return 0, 0
-
-
-def start_capture(adb_cmd, ffmpeg_cmd):
-    adb_proc = subprocess.Popen(
-        adb_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-    )
-    threading.Thread(target=drain_pipe, args=(adb_proc.stderr, "adb"), daemon=True).start()
-
-    ffmpeg_proc = subprocess.Popen(
-        ffmpeg_cmd, stdin=adb_proc.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-    )
-    threading.Thread(target=drain_pipe, args=(ffmpeg_proc.stderr, "ffmpeg"), daemon=True).start()
-    adb_proc.stdout.close()
-
-    return adb_proc, ffmpeg_proc
-
-
 CLASH_PIPELINE_DIR = os.path.join(REPO_ROOT, "clash-yolo-pipeline")
 CLASH_MODELS_DIR = os.path.join(CLASH_PIPELINE_DIR, "models")
 CLASH_VENDOR_DIR = os.path.join(CLASH_PIPELINE_DIR, "vendor")
@@ -958,93 +922,31 @@ def group_detections(detections: list) -> dict:
     return grouped
 
 
+def start_frame_source(args, preset):
+    """Frame source: Quartz grabs of the macOS iPhone Mirroring window."""
+    from .mirror_capture import MirrorFrameSource
+
+    max_size = args.max_size if args.max_size else preset.max_size
+    source = MirrorFrameSource(max_size=max_size, target_fps=args.mirror_fps)
+    info = source.probe()
+    print(
+        f"[INFO] iPhone Mirroring window {info['window_id']} "
+        f"native {info['native']['width']}x{info['native']['height']} "
+        f"(backing scale {info['backing_scale']}x)"
+    )
+    print(f"[INFO] Output resolution: {info['frame']['width']}x{info['frame']['height']}")
+    source.start()
+    return source.frame_width, source.frame_height, source.read_latest, source.stop
+
+
 def run(args):
     preset = PRESETS[args.preset]
     print(f"[INFO] Preset: {preset.name} - {preset.description}")
 
-    adb_bin = find_bin("adb")
-    ffmpeg_bin = find_bin("ffmpeg")
-
-    dev_w, dev_h = get_device_resolution(adb_bin)
-    if dev_w == 0:
-        print("[ERROR] Device not found or not authorized.")
-        print("[INFO] Check: adb devices")
-        sys.exit(1)
-    print(f"[INFO] Device resolution: {dev_w}x{dev_h}")
-
-    max_size = args.max_size if args.max_size else preset.max_size
-    max_dim = max(dev_w, dev_h)
-    if max_dim > max_size:
-        scale = max_size / max_dim
-        frame_w = int(dev_w * scale) & ~1
-        frame_h = int(dev_h * scale) & ~1
-    else:
-        frame_w = dev_w & ~1
-        frame_h = dev_h & ~1
-    print(f"[INFO] Output resolution: {frame_w}x{frame_h}")
-
     detector = ClashDetector(preset)
     hand_classifier = CardSlotClassifier()
 
-    bit_rate = args.bit_rate if args.bit_rate else preset.bit_rate
-    if bit_rate.upper().endswith("M"):
-        bit_rate_int = int(bit_rate[:-1]) * 1_000_000
-    elif bit_rate.upper().endswith("K"):
-        bit_rate_int = int(bit_rate[:-1]) * 1_000
-    else:
-        bit_rate_int = int(bit_rate)
-
-    adb_cmd = [
-        adb_bin, "exec-out", "screenrecord",
-        "--output-format=h264", f"--bit-rate={bit_rate_int}", "-",
-    ]
-    ffmpeg_cmd = [
-        ffmpeg_bin, "-hide_banner", "-loglevel", "error",
-        "-f", "h264", "-i", "pipe:0",
-        "-vf", f"scale={frame_w}:{frame_h}",
-        "-f", "rawvideo", "-pix_fmt", "bgr24", "-an", "pipe:1",
-    ]
-
-    print(f"[INFO] adb: {' '.join(adb_cmd)}")
-    print(f"[INFO] ffmpeg: {' '.join(ffmpeg_cmd)}")
-
-    frame_size = frame_w * frame_h * 3
-    lock = threading.Lock()
-    latest_frame = [None]
-    latest_system_ms = [0.0]
-    running = threading.Event()
-    running.set()
-
-    def reader_loop():
-        while running.is_set():
-            adb_proc, ffmpeg_proc = start_capture(adb_cmd, ffmpeg_cmd)
-            try:
-                while running.is_set():
-                    t0 = time.perf_counter()
-                    raw = ffmpeg_proc.stdout.read(frame_size)
-                    dt = (time.perf_counter() - t0) * 1000.0
-
-                    if len(raw) != frame_size:
-                        if ffmpeg_proc.poll() is not None or adb_proc.poll() is not None:
-                            break
-                        continue
-
-                    img = np.frombuffer(raw, dtype=np.uint8).reshape((frame_h, frame_w, 3))
-                    with lock:
-                        latest_frame[0] = img
-                        latest_system_ms[0] = dt
-            finally:
-                ffmpeg_proc.kill()
-                adb_proc.kill()
-                ffmpeg_proc.wait()
-                adb_proc.wait()
-
-            if running.is_set():
-                print("[INFO] Stream ended, restarting capture...")
-                time.sleep(0.2)
-
-    reader_thread = threading.Thread(target=reader_loop, daemon=True)
-    reader_thread.start()
+    frame_w, frame_h, read_latest, stop_source = start_frame_source(args, preset)
 
     output_path = os.path.abspath(args.output_json)
     print(f"[INFO] Writing JSON snapshots to: {output_path}")
@@ -1054,9 +956,7 @@ def run(args):
     executor = ThreadPoolExecutor(max_workers=4)
     try:
         while True:
-            with lock:
-                frame = None if latest_frame[0] is None else latest_frame[0].copy()
-                system_ms = latest_system_ms[0]
+            frame, system_ms = read_latest()
 
             if frame is None:
                 time.sleep(0.05)
@@ -1140,7 +1040,7 @@ def run(args):
     except KeyboardInterrupt:
         print("\n[INFO] Shutting down...")
     finally:
-        running.clear()
+        stop_source()
         executor.shutdown(wait=False)
 
 
@@ -1165,8 +1065,8 @@ def main():
         help="Override max dimension in pixels (default: preset value)",
     )
     parser.add_argument(
-        "--bit-rate", type=str, default=None,
-        help="Override video bitrate (default: preset value)",
+        "--mirror-fps", type=float, default=30.0,
+        help="Target grab rate for the iPhone Mirroring window (default: 30)",
     )
     args = parser.parse_args()
     run(args)
