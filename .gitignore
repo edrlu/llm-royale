@@ -16,12 +16,16 @@ venv/
 .vscode/
 .idea/
 
-# YOLO models and pipeline (large binaries, vendored)
-clash-yolo-pipeline/
+# YOLO weights: 168MB, too big for git. install.sh checks for them and explains
+# how to bring them over. The vendored KataCR source next to them is small and
+# is tracked, so a clone only needs the weights copied in.
+clash-yolo-pipeline/models/
+clash-yolo-pipeline/.ultralytics/
 
 # Runtime state
 llm_clasher_state.json
 llm_clasher_decision.json
+STOP
 
 # Debug output and images
 debug/

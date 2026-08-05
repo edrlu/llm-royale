@@ -51,11 +51,6 @@ TRIPLE_ELIXIR_AT_SEC = 240.0   # 4 minutes into the match
 # Consecutive snapshots without a battle before the match counts as over.
 MATCH_END_CONFIRM_SNAPSHOTS = 6
 
-# A played card leaves the hand and only returns after four more cards, so the
-# same card cannot legitimately be played twice in a row. When it happens it is
-# the hand classifier still showing the pre-play hand — the capture is a few
-# hundred ms behind — and the swipe does nothing. Measured at 20% of all
-# placements in one match before this guard.
 # Elixir readings around a placement, used to tell whether the game actually
 # accepted the card. Verification by detection cannot answer that on its own:
 # spells leave no unit behind, and small troops are easy for the detector to
@@ -924,6 +919,15 @@ def main() -> int:
             f"{record_info['frame']['width']}x{record_info['frame']['height']}"
             f"{' (raw)' if args.record_raw else ' with detection overlay'}"
         )
+
+    # A state file left by the previous run describes the previous match. Read
+    # before the capture writes its first snapshot, it looks like a battle
+    # already in progress — enough to report a match starting and then finishing
+    # before the real one begins.
+    try:
+        os.remove(args.state_json)
+    except OSError:
+        pass
 
     worker = CaptureWorker(args.python_bin, args.state_json)
     planner = OpenAIPlanner(args.model)

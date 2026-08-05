@@ -15,12 +15,17 @@ choice comes from numbers rather than from assuming a thread is free.
 
 import argparse
 import threading
+import os
+import sys
 import time
 
 import numpy as np
 
-from .mirror_capture import MirrorFrameSource
-from .recorder import VideoRecorder
+# Run directly from the repo root or from tools/ without installing the package.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from llm_royale.mirror_capture import MirrorFrameSource
+from llm_royale.recorder import VideoRecorder
 
 
 def measure(target_fps: float, seconds: float, detector_fps: float, out_path: str,
@@ -84,7 +89,7 @@ def main() -> int:
     if args.overlay:
         import json
         import os
-        from .overlay import draw_overlay
+        from llm_royale.overlay import draw_overlay
 
         snapshot = {}
         for candidate in ("llm_clasher_state.json",):
