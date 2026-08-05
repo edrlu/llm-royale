@@ -335,15 +335,24 @@ class CaptureWorker:
         return self.exit_code not in (None, 0)
 
 
-class OpenAIPlanner:
+class Planner:
+    """Everything about deciding a move that is not the API call itself.
+
+    Prompt construction, the board summary, the decision schema, and the
+    validation of what comes back are identical whichever model is asked —
+    only `request_decision_json` differs per provider. Keeping the split here
+    means a change to how the board is described cannot drift between them.
+    """
+
     def __init__(self, model: str):
         self.model = model
-        self.api_key = os.environ.get("OPENAI_API_KEY")
-        if not self.api_key:
-            raise RuntimeError("OPENAI_API_KEY is required")
         self.last_api_debug = {}
         self.recent_api_latencies_ms = deque(maxlen=8)
         self.recent_actions: deque = deque(maxlen=4)
+
+    def request_decision_json(self, *, instructions: str, input_text: str) -> str:
+        """Ask the model for one decision. Returns the raw JSON text."""
+        raise NotImplementedError
 
     def estimate_decision_latency_sec(self, snapshot: dict) -> float:
         capture_latency_ms = float(snapshot.get("capture", {}).get("total_latency_ms", 0.0) or 0.0)
@@ -631,8 +640,8 @@ class OpenAIPlanner:
             raise ValueError("Empty model response")
         return joined
 
-    def _extract_decision(self, data: dict) -> dict:
-        decision = json.loads(self._extract_output_text(data))
+    def _decision_from_text(self, text: str) -> dict:
+        decision = json.loads(text)
         action = decision.get("action")
         if action == "idle":
             decision["card"] = None
@@ -699,11 +708,134 @@ class OpenAIPlanner:
         height = compact["h"]
         decision_latency_sec = compact["decision_latency_sec"]
         river_y = float(compact["board"].get("river_y_norm") or 0.5)
-        data = self._responses_create(
+        text = self.request_decision_json(
             instructions=self.build_instructions(width, height, decision_latency_sec, river_y),
             input_text=self.build_input(snapshot),
         )
-        return self._extract_decision(data)
+        return self._decision_from_text(text)
+
+
+class OpenAIPlanner(Planner):
+    """Planner backed by the OpenAI Responses API."""
+
+    def __init__(self, model: str):
+        super().__init__(model)
+        self.api_key = os.environ.get("OPENAI_API_KEY")
+        if not self.api_key:
+            raise RuntimeError("OPENAI_API_KEY is required for the openai provider")
+
+    def request_decision_json(self, *, instructions: str, input_text: str) -> str:
+        return self._extract_output_text(
+            self._responses_create(instructions=instructions, input_text=input_text)
+        )
+
+
+class AnthropicPlanner(Planner):
+    """Planner backed by the Claude Messages API.
+
+    Two settings here are about the control loop, not about capability. Thinking
+    is disabled and effort is low because this runs live against a match: a
+    placement is worth nothing if it arrives after the push it was answering
+    has already crossed the bridge. Structured outputs then guarantee the reply
+    parses as the decision schema, which also removes the one real hazard of
+    running Claude with thinking off — reasoning leaking into the text as
+    unparseable prose.
+    """
+
+    # Enough for the decision object; the schema keeps responses short.
+    MAX_TOKENS = 256
+
+    def __init__(self, model: str):
+        super().__init__(model)
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            raise RuntimeError("ANTHROPIC_API_KEY is required for the anthropic provider")
+        try:
+            import anthropic
+        except ImportError as e:
+            raise RuntimeError(
+                "The anthropic package is missing. Run ./install.sh, or "
+                "pip install anthropic."
+            ) from e
+        self._client = anthropic.Anthropic()
+
+    def decision_schema(self) -> dict:
+        """The decision shape, in the schema dialect structured outputs accepts.
+
+        Same fields as the OpenAI schema, but nullable values are spelled as an
+        anyOf rather than a type union — the union form is not part of the
+        supported subset.
+        """
+        cards = sorted(CARD_COSTS)
+        nullable_number = {"anyOf": [{"type": "number"}, {"type": "null"}]}
+        return {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "action": {"type": "string", "enum": ["idle", "place_card"]},
+                "card": {"anyOf": [{"type": "string", "enum": cards}, {"type": "null"}]},
+                "x_norm": nullable_number,
+                "y_norm": nullable_number,
+                "reason": {"type": "string"},
+            },
+            "required": ["action", "card", "x_norm", "y_norm", "reason"],
+        }
+
+    def request_decision_json(self, *, instructions: str, input_text: str) -> str:
+        started = time.time()
+        response = self._client.messages.create(
+            model=self.model,
+            max_tokens=self.MAX_TOKENS,
+            system=instructions,
+            messages=[{"role": "user", "content": input_text}],
+            thinking={"type": "disabled"},
+            output_config={
+                "effort": "low",
+                "format": {"type": "json_schema", "schema": self.decision_schema()},
+            },
+        )
+        elapsed_ms = round((time.time() - started) * 1000.0, 2)
+
+        usage = response.usage
+        self.last_api_debug = {
+            "model": self.model,
+            "provider": "anthropic",
+            "latency_ms": elapsed_ms,
+            "input_bytes": len(input_text.encode("utf-8")),
+            "instructions_chars": len(instructions),
+            "response_status": response.stop_reason,
+            "usage": {
+                "input_tokens": usage.input_tokens,
+                "output_tokens": usage.output_tokens,
+                "cache_read_input_tokens": getattr(usage, "cache_read_input_tokens", None),
+            },
+        }
+        self.recent_api_latencies_ms.append(elapsed_ms)
+
+        # Check why generation stopped before reading content: a refusal comes
+        # back as a normal 200 with no usable text, and max_tokens leaves the
+        # JSON truncated — both would otherwise surface as a parse error.
+        if response.stop_reason == "refusal":
+            details = getattr(response, "stop_details", None)
+            raise ValueError(f"Claude refused the request ({getattr(details, 'category', 'unspecified')})")
+        if response.stop_reason == "max_tokens":
+            raise ValueError("Claude response hit max_tokens before completing the decision")
+
+        for block in response.content:
+            if block.type == "text" and block.text.strip():
+                return block.text.strip()
+        raise ValueError("Claude response contained no text block")
+
+
+PLANNERS = {
+    "openai": OpenAIPlanner,
+    "anthropic": AnthropicPlanner,
+}
+
+# Per-provider defaults, used when --model is not given.
+DEFAULT_MODELS = {
+    "openai": "gpt-5.4-mini",
+    "anthropic": "claude-opus-5",
+}
 
 
 def read_snapshot(path: str) -> Optional[dict]:
@@ -811,7 +943,15 @@ def verify_action(snapshot: dict, pending_action: dict) -> dict:
 def main() -> int:
     load_dotenv()
     parser = argparse.ArgumentParser(description="Capture Clash Royale state, ask an LLM for a move, and execute it")
-    parser.add_argument("--model", default=os.environ.get("OPENAI_MODEL", "gpt-5.4-mini"))
+    parser.add_argument(
+        "--provider", choices=sorted(PLANNERS), default=os.environ.get("LLM_PROVIDER", "openai"),
+        help="Which API decides the moves (default: openai, or $LLM_PROVIDER)",
+    )
+    parser.add_argument(
+        "--model", default=None,
+        help="Model id. Defaults to the provider's default: "
+             + ", ".join(f"{name}={model}" for name, model in sorted(DEFAULT_MODELS.items())),
+    )
     parser.add_argument("--state-json", default="llm_clasher_state.json")
     parser.add_argument("--decision-json", default="llm_clasher_decision.json")
     parser.add_argument("--python-bin", default=sys.executable)
@@ -866,6 +1006,14 @@ def main() -> int:
 
     if not args.no_wait:
         wait_for_space()
+
+    # An explicit --model wins; otherwise each provider has its own default, so
+    # switching provider does not require also remembering to change the model.
+    # OPENAI_MODEL / ANTHROPIC_MODEL still override, matching how the key is read.
+    model = args.model or os.environ.get(
+        f"{args.provider.upper()}_MODEL", DEFAULT_MODELS[args.provider]
+    )
+    print(f"[INFO] planner: {args.provider} / {model}")
 
     stopper = Stopper(args.stop_file)
 
@@ -930,7 +1078,7 @@ def main() -> int:
         pass
 
     worker = CaptureWorker(args.python_bin, args.state_json)
-    planner = OpenAIPlanner(args.model)
+    planner = PLANNERS[args.provider](model)
     executor = MirrorActionExecutor()
     cycle_tracker = CycleTracker()
     tower_tracker = TowerHealthTracker()

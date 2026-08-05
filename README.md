@@ -8,7 +8,7 @@ phone.
 iPhone  ->  macOS "iPhone Mirroring" window
         ->  CGWindowListCreateImage        (window capture, ~17ms a frame)
         ->  two YOLO detectors + HUD readers  (~300ms a snapshot)
-        ->  compact JSON  ->  OpenAI Responses API
+        ->  compact JSON  ->  OpenAI Responses API *or* Claude Messages API
         ->  Quartz CGEvent drag            (forwarded to the phone as a touch)
 ```
 
@@ -33,7 +33,8 @@ Requirements it does not handle:
   ```bash
   scp -r you@othermac:llm-royale/clash-yolo-pipeline/models/ clash-yolo-pipeline/models/
   ```
-- **Your OpenAI key** in `.env` as `OPENAI_API_KEY=...`.
+- **An API key** in `.env` — `OPENAI_API_KEY=...` or `ANTHROPIC_API_KEY=...`.
+  Only the provider you actually run needs one.
 
 ## Playing one battle
 
@@ -48,6 +49,24 @@ result screens. It waits for a battle, plays it, notices when it ends, and
 exits. The video lands in `recordings/` and the decision log in `logs/`.
 
 `./run.sh --no-record` skips the recording.
+
+## Choosing the planner
+
+The moves can come from either provider — the board summary, prompt, and
+decision schema are shared, so only the API call differs.
+
+```bash
+./run.sh                       # OpenAI (default), gpt-5.4-mini
+./run.sh --provider anthropic  # Claude, claude-opus-5
+./run.sh --provider anthropic --model claude-haiku-4-5
+```
+
+Set `LLM_PROVIDER` in `.env` to change the default, and `OPENAI_MODEL` /
+`ANTHROPIC_MODEL` to change a provider's default model.
+
+The Claude planner runs with thinking disabled at low effort, and constrains the
+reply with structured outputs. Both are deliberate: this is a live control loop,
+where a placement that arrives after the push it was answering is worth nothing.
 
 To stop early, from another terminal:
 
@@ -72,7 +91,7 @@ through chests. One video per match, oldest pruned past 25.
 | `mirror_capture.py` | reads the iPhone Mirroring window |
 | `mac_action.py` | taps and drags, via Quartz CGEvent |
 | `clash_capture.py` | YOLO + HUD readers, writes state JSON |
-| `llm_clasher.py` | the loop: state -> LLM -> action |
+| `llm_clasher.py` | the loop: state -> LLM -> action; one planner class per provider |
 | `match_navigator.py` | which screen is showing, and how to leave it |
 | `hud_ocr.py` | elixir bar and tower HP |
 | `cycle_tracker.py` | hand classification and cycle memory |

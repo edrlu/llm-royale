@@ -6,8 +6,9 @@
 # does not press Battle and does not tap through result screens — it plays the
 # battle in front of it, notices when that battle ends, and exits.
 #
-#   ./run.sh              play one battle, record it
-#   ./run.sh --no-record  play one battle without recording
+#   ./run.sh                        play one battle, record it
+#   ./run.sh --no-record            play one battle without recording
+#   ./run.sh --provider anthropic   let Claude decide the moves instead of GPT
 #
 # To stop early, from another terminal:  venv/bin/python -m llm_royale.stopper
 
@@ -21,10 +22,14 @@ LOG_DIR="${LOG_DIR:-logs}"
 RECORD_FPS="${RECORD_FPS:-60}"
 
 record=1
+# Anything not consumed here is forwarded to the bot, so provider and model
+# selection (--provider anthropic, --model ...) work without duplicating flags.
+passthrough=()
 for arg in "$@"; do
     case "$arg" in
         --no-record) record=0 ;;
-        -h|--help) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help) sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        *) passthrough+=("$arg") ;;
     esac
 done
 
@@ -59,7 +64,7 @@ stamp=$(date '+%Y%m%d_%H%M%S')
 logfile="$LOG_DIR/battle_$stamp.log"
 rm -f STOP
 
-args=(--no-wait --matches 1 --stop-file STOP)
+args=(--no-wait --matches 1 --stop-file STOP "${passthrough[@]+"${passthrough[@]}"}")
 if [ "$record" -eq 1 ]; then
     video="$VIDEO_DIR/battle_$stamp.mp4"
     args+=(--record "$video" --record-fps "$RECORD_FPS")

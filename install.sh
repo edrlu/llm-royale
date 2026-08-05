@@ -4,7 +4,7 @@
 #
 # Installs the system tools and Python packages, then checks the two things a
 # git clone cannot provide on its own: the YOLO weights (168MB, too large for
-# git) and an OpenAI API key. It is safe to re-run.
+# git) and an API key for whichever planner you use. It is safe to re-run.
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -85,21 +85,31 @@ else
     green "model weights present"
 fi
 
-step "Checking the OpenAI key"
+step "Checking the API keys"
+# Either provider works, so only one key is actually required.
 if [ ! -f .env ]; then
     if [ -f .env.example ]; then
         cp .env.example .env
-        yellow "created .env from .env.example — put your key in it"
+        yellow "created .env from .env.example — put a key in it"
     else
-        printf 'OPENAI_API_KEY=\n' > .env
-        yellow "created .env — put your key in it"
+        printf 'OPENAI_API_KEY=\nANTHROPIC_API_KEY=\n' > .env
+        yellow "created .env — put a key in it"
     fi
     problems=1
-elif grep -q '^OPENAI_API_KEY=.\+' .env; then
-    green "OPENAI_API_KEY set in .env"
 else
-    red "OPENAI_API_KEY is empty in .env"
-    problems=1
+    have_key=0
+    if grep -qE '^OPENAI_API_KEY=.+' .env && ! grep -qE '^OPENAI_API_KEY=your_' .env; then
+        green "OPENAI_API_KEY set (--provider openai)"
+        have_key=1
+    fi
+    if grep -qE '^ANTHROPIC_API_KEY=.+' .env && ! grep -qE '^ANTHROPIC_API_KEY=your_' .env; then
+        green "ANTHROPIC_API_KEY set (--provider anthropic)"
+        have_key=1
+    fi
+    if [ "$have_key" -eq 0 ]; then
+        red "No API key in .env — set OPENAI_API_KEY or ANTHROPIC_API_KEY"
+        problems=1
+    fi
 fi
 
 step "Checking the capture path"
