@@ -65,19 +65,19 @@ Set `LLM_PROVIDER`, `OPENAI_MODEL`, `ANTHROPIC_MODEL`, and `LLM_EFFORT` in
 `.env` to change the defaults — every accepted value is listed in
 `.env.example`.
 
-Effort (`low` | `medium` | `high` | `xhigh` | `max`) applies to the **Claude
-planner only**; it defaults to `low`. Thinking cannot be switched off above
-`high`, so `xhigh` and `max` turn it on and are much slower — a real trade in a
-live match, where a placement is worth nothing once the push it was answering
-has crossed the bridge.
+Effort (`low` | `medium` | `high` | `xhigh` | `max`) works on both providers:
 
 ```bash
-./run.sh --provider anthropic --effort medium
+./run.sh --effort medium
 ```
 
-The OpenAI planner has no effort setting wired up. Its request currently sends
-`temperature: 0` and no reasoning-effort parameter; adding one means confirming
-the right parameter name for the model you run rather than guessing at it.
+Unset, Claude runs at `low` — chosen for speed — while OpenAI leaves the
+parameter off the request so the model's own default applies. On Claude,
+thinking cannot be switched off above `high`, so `xhigh` and `max` turn it on
+and are much slower: a real trade in a live match, where a placement is worth
+nothing once the push it was answering has crossed the bridge.
+
+Every accepted value for each setting is listed in `.env.example`.
 
 To stop early, from another terminal:
 

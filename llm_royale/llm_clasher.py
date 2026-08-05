@@ -668,6 +668,8 @@ class Planner:
             # reduce latency in the live control loop.
             "max_output_tokens": 120,
         }
+        if self.effort is not None:
+            payload["reasoning"] = {"effort": self.effort}
         start = time.time()
         response = requests.post(
             "https://api.openai.com/v1/responses",
@@ -681,6 +683,8 @@ class Planner:
         elapsed_ms = round((time.time() - start) * 1000.0, 2)
         self.last_api_debug = {
             "model": self.model,
+            "provider": "openai",
+            "effort": self.effort,
             "http_status": response.status_code,
             "latency_ms": elapsed_ms,
             "input_bytes": len(input_text.encode("utf-8")),
@@ -718,11 +722,15 @@ class Planner:
 class OpenAIPlanner(Planner):
     """Planner backed by the OpenAI Responses API."""
 
-    def __init__(self, model: str):
+    def __init__(self, model: str, effort: Optional[str] = None):
         super().__init__(model)
         self.api_key = os.environ.get("OPENAI_API_KEY")
         if not self.api_key:
             raise RuntimeError("OPENAI_API_KEY is required for the openai provider")
+        # Left off the request entirely unless asked for. Not every model takes
+        # a reasoning effort, and sending one by default would change how the
+        # existing setup behaves for the sake of a knob nobody set.
+        self.effort = effort
 
     def request_decision_json(self, *, instructions: str, input_text: str) -> str:
         return self._extract_output_text(
@@ -849,8 +857,14 @@ DEFAULT_MODELS = {
     "anthropic": "claude-opus-5",
 }
 
-# Claude effort levels, cheapest and fastest first.
+# Effort levels both providers accept, cheapest and fastest first. OpenAI also
+# takes "none" and "minimal"; those are left out because Claude rejects them and
+# one shared vocabulary is worth more here than the extra two rungs.
 EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
+
+# Claude runs at this when no effort is given: the live loop wants speed, and
+# anything above `high` forces thinking on.
+DEFAULT_ANTHROPIC_EFFORT = "low"
 
 # Thinking can only be switched off at high effort or below; pairing it with
 # xhigh or max is rejected outright. Above that line the planner has to let the
@@ -968,9 +982,10 @@ def main() -> int:
         help="Which API decides the moves (default: openai, or $LLM_PROVIDER)",
     )
     parser.add_argument(
-        "--effort", choices=EFFORT_LEVELS, default=os.environ.get("LLM_EFFORT", "low"),
-        help="How hard the planner thinks, Claude only (default: low, or $LLM_EFFORT). "
-             "xhigh and max require thinking, which is much slower in a live match",
+        "--effort", choices=EFFORT_LEVELS, default=os.environ.get("LLM_EFFORT"),
+        help="How hard the planner thinks (or $LLM_EFFORT). Claude defaults to "
+             f"{DEFAULT_ANTHROPIC_EFFORT}; OpenAI omits the parameter unless set. "
+             "On Claude, xhigh and max force thinking on and are much slower",
     )
     parser.add_argument(
         "--model", default=None,
@@ -1038,11 +1053,11 @@ def main() -> int:
     model = args.model or os.environ.get(
         f"{args.provider.upper()}_MODEL", DEFAULT_MODELS[args.provider]
     )
+    effort = args.effort or (DEFAULT_ANTHROPIC_EFFORT if args.provider == "anthropic" else None)
     planner_note = f"[INFO] planner: {args.provider} / {model}"
-    if args.provider == "anthropic":
-        planner_note += f" / effort {args.effort}"
-        if args.effort in EFFORT_REQUIRING_THINKING:
-            planner_note += " (thinking on — expect much higher latency)"
+    planner_note += f" / effort {effort}" if effort else " / effort unset (provider default)"
+    if args.provider == "anthropic" and effort in EFFORT_REQUIRING_THINKING:
+        planner_note += " (thinking on — expect much higher latency)"
     print(planner_note)
 
     stopper = Stopper(args.stop_file)
@@ -1109,9 +1124,9 @@ def main() -> int:
 
     worker = CaptureWorker(args.python_bin, args.state_json)
     if args.provider == "anthropic":
-        planner = AnthropicPlanner(model, effort=args.effort)
+        planner = AnthropicPlanner(model, effort=args.effort or DEFAULT_ANTHROPIC_EFFORT)
     else:
-        planner = PLANNERS[args.provider](model)
+        planner = OpenAIPlanner(model, effort=args.effort)
     executor = MirrorActionExecutor()
     cycle_tracker = CycleTracker()
     tower_tracker = TowerHealthTracker()
