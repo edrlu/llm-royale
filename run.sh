@@ -16,8 +16,8 @@ cd "$(dirname "$0")"
 
 VENV="${VENV:-venv}"
 PYTHON="$VENV/bin/python"
-VIDEO_DIR="${VIDEO_DIR:-debug/vid}"
-LOG_DIR="${LOG_DIR:-debug/logs}"
+VIDEO_DIR="${VIDEO_DIR:-recordings}"
+LOG_DIR="${LOG_DIR:-logs}"
 RECORD_FPS="${RECORD_FPS:-60}"
 
 record=1

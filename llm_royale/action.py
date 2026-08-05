@@ -8,9 +8,7 @@ device-agnostic half: normalized coordinates, hand slot geometry, and turning a
 planner decision into taps and drags.
 """
 
-import sys
-import time
-from typing import Dict, Optional
+from typing import Dict
 
 
 # Tap targets for the four hand slots, measured on the iPhone Mirroring window.

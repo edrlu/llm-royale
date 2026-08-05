@@ -3,26 +3,21 @@
 Clash Royale screen capture that writes detection snapshots to JSON.
 
 Pipeline:
-    adb screenrecord (H.264) -> ffmpeg (raw BGR frames) -> Clash detector -> JSON
+    iPhone Mirroring window -> Quartz grab -> Clash detector -> JSON snapshot
 
-Default behavior:
-    - No OpenCV window rendering
-    - Writes one JSON snapshot per second to clash_state.json
+Writes one JSON snapshot per interval; nothing is rendered to screen.
 
 Usage:
-    python clash_capture.py
-    python clash_capture.py --preset fast
-    python clash_capture.py --output-json state.json --interval-sec 0.5
+    python -m llm_royale.clash_capture
+    python -m llm_royale.clash_capture --preset fast
+    python -m llm_royale.clash_capture --output-json state.json --interval-sec 0.5
 """
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import json
 import os
-import shutil
-import subprocess
 import sys
-import threading
 import time
 from datetime import datetime, timezone
 from typing import Optional
@@ -42,23 +37,10 @@ from .cycle_tracker import CardSlotClassifier, crop_hand_slots
 from .match_navigator import screen_kind
 from .hud_ocr import (
     TowerBarReader,
-    count_elixir_pips,
     infer_elixir_count_from_frame as infer_elixir_count_from_ocr,
     infer_tower_health_from_bars,
     infer_tower_health_from_frame,
 )
-
-
-def find_bin(name: str) -> str:
-    path = shutil.which(name)
-    if path:
-        return path
-    for prefix in ["/opt/homebrew/bin", "/usr/local/bin"]:
-        candidate = os.path.join(prefix, name)
-        if os.path.isfile(candidate):
-            return candidate
-    print(f"[ERROR] {name} not found. Install with: brew install {name}")
-    sys.exit(1)
 
 
 CLASH_PIPELINE_DIR = os.path.join(REPO_ROOT, "clash-yolo-pipeline")

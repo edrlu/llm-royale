@@ -45,7 +45,7 @@ Open iPhone Mirroring, start a battle yourself, then:
 
 It never touches the menus — it will not press Battle and will not tap through
 result screens. It waits for a battle, plays it, notices when it ends, and
-exits. The video lands in `debug/vid/` and the decision log in `debug/logs/`.
+exits. The video lands in `recordings/` and the decision log in `logs/`.
 
 `./run.sh --no-record` skips the recording.
 
@@ -81,6 +81,7 @@ through chests. One video per match, oldest pruned past 25.
 | `tools/` | recording benchmark |
 | `docs/` | notes on the planner API call |
 | `archive/` | superseded code, kept for reference only |
+| `recordings/`, `logs/` | run output, not tracked |
 
 ## Known limitations
 

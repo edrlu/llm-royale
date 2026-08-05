@@ -22,8 +22,8 @@ set -uo pipefail
 cd "$(dirname "$0")"
 
 PYTHON="${PYTHON:-venv/bin/python}"
-VIDEO_DIR="${VIDEO_DIR:-debug/vid}"
-LOG_DIR="${LOG_DIR:-debug/logs}"
+VIDEO_DIR="${VIDEO_DIR:-recordings}"
+LOG_DIR="${LOG_DIR:-logs}"
 STOP_FILE="${STOP_FILE:-STOP}"
 # Videos are ~10MB a match at native 60fps, so an unattended night would other-
 # wise fill the disk. Keep the most recent ones and drop the rest.

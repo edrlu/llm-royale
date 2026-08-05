@@ -2,9 +2,8 @@
 """
 Frame source for the macOS "iPhone Mirroring" window.
 
-This is the iOS counterpart to the adb + ffmpeg pipeline. Instead of pulling an
-H.264 stream off an Android device, it grabs the mirrored iPhone window straight
-out of the window server with Quartz.
+Grabs the mirrored iPhone window straight out of the window server with Quartz.
+Window capture rather than screen capture, so moving the window is harmless.
 
 Pipeline:
 
@@ -27,7 +26,6 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-import Quartz
 from Quartz import (
     CGBitmapContextCreate,
     CGColorSpaceCreateDeviceRGB,
@@ -140,9 +138,9 @@ class _BitmapScaler:
 class MirrorFrameSource:
     """Latest-frame-wins reader for the iPhone Mirroring window.
 
-    Mirrors the contract the adb pipeline exposes to the rest of the app:
-    a background thread keeps only the most recent frame, and `read_latest()`
-    returns (frame, system_latency_ms).
+    A background thread keeps only the most recent frame, and `read_latest()`
+    returns (frame, system_latency_ms) — the detector wants the freshest frame,
+    never a backlog.
     """
 
     def __init__(self, max_size: int = 832, target_fps: float = 30.0):

@@ -18,7 +18,6 @@ import Quartz
 from Quartz import (
     CGEventCreateMouseEvent,
     CGEventPost,
-    CGEventSetType,
     kCGEventLeftMouseDown,
     kCGEventLeftMouseDragged,
     kCGEventLeftMouseUp,

@@ -1,9 +1,8 @@
 """
-Capture pipeline configuration presets.
+Capture pipeline configuration: HUD geometry and detector presets.
 
-Usage:
-    python screen_capture.py --preset quality     # Current defaults, max accuracy
-    python screen_capture.py --preset fast         # Optimized for low latency
+    python -m llm_royale.clash_capture --preset fast      # low latency
+    python -m llm_royale.clash_capture --preset quality   # max accuracy
 """
 
 from dataclasses import dataclass
@@ -12,8 +11,7 @@ from dataclasses import dataclass
 # UI crop geometry.
 #
 # All values are normalized to the iPhone Mirroring capture (portrait, roughly
-# 0.45 aspect). They were measured off a live 1v1 frame, not ported from the
-# Android layout — the taller screen shifts every HUD element.
+# 0.45 aspect) and were measured off a live 1v1 frame.
 HAND_SLOT_CENTERS = [0.317, 0.490, 0.663, 0.836]
 HAND_CARD_Y_LOWER_NORM = 0.845
 HAND_CARD_Y_UPPER_NORM = 0.915
@@ -80,7 +78,6 @@ class CapturePreset:
 
     # Capture pipeline
     max_size: int           # max pixel dimension for capture
-    bit_rate: str           # H.264 bitrate over USB
 
     # Clash detector
     clash_num_models: int   # 1 = single detector, 2 = combo (both detectors)
@@ -90,10 +87,6 @@ class CapturePreset:
     clash_iou: float        # NMS IoU threshold
     clash_half: bool        # FP16 half precision
     clash_fuse: bool        # fuse Conv+BN layers
-
-    # Generic YOLO
-    yolo_model: str
-    yolo_conf: float
 
 
 # ---------------------------------------------------------------------------
@@ -105,7 +98,6 @@ QUALITY = CapturePreset(
     description="Max accuracy, dual detectors, full resolution. ~700ms process latency.",
 
     max_size=1024,
-    bit_rate="8M",
 
     clash_num_models=2,
     clash_device="cpu",
@@ -114,9 +106,6 @@ QUALITY = CapturePreset(
     clash_iou=0.45,
     clash_half=False,
     clash_fuse=False,
-
-    yolo_model="yolov8n.pt",
-    yolo_conf=0.4,
 )
 
 FAST = CapturePreset(
@@ -124,7 +113,6 @@ FAST = CapturePreset(
     description="Balanced low-latency preset with both Clash detectors and MPS acceleration.",
 
     max_size=832,               # more detail for small troops while staying below quality
-    bit_rate="6M",              # reduce compression artifacts on moving units
 
     clash_num_models=2,         # keep both detectors for full Hog 2.6 coverage
     clash_device="mps",         # Apple Metal GPU acceleration
@@ -133,9 +121,6 @@ FAST = CapturePreset(
     clash_iou=0.45,
     clash_half=True,            # FP16 — ~1.5-2x faster, minimal accuracy loss
     clash_fuse=True,            # fuse Conv+BN layers — free 10-20% speedup
-
-    yolo_model="yolov8n.pt",
-    yolo_conf=0.4,
 )
 
 # Registry

@@ -27,7 +27,9 @@ llm_clasher_state.json
 llm_clasher_decision.json
 STOP
 
-# Debug output and images
+# Run output
+recordings/
+logs/
 debug/
 
 # Claude
