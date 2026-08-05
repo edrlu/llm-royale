@@ -78,8 +78,9 @@ through chests. One video per match, oldest pruned past 25.
 | `cycle_tracker.py` | hand classification and cycle memory |
 | `overlay.py`, `recorder.py` | annotated video |
 | `stopper.py` | the kill switch |
-| `tools/` | benchmarks and one-off experiments |
-| `docs/` | pipeline notes |
+| `tools/` | recording benchmark |
+| `docs/` | notes on the planner API call |
+| `archive/` | superseded code, kept for reference only |
 
 ## Known limitations
 
