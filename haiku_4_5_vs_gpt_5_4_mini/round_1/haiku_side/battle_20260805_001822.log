@@ -1,0 +1,530 @@
+[INFO] planner: anthropic / claude-haiku-4-5 / effort low
+[INFO] recording to recordings/battle_20260805_001822.mp4 at 60fps, 630x1392 with detection overlay
+[INFO] latency figure: figures/battle_20260805_001822.png (redrawn every 10s)
+[INFO] claude-haiku-4-5 does not accept an effort level; sending the request without one
+[capture] [INFO] Preset: fast - Balanced low-latency preset with both Clash detectors and MPS acceleration.
+[capture] [INFO] Clash filter: 19 classes allowed out of 155
+[capture] [INFO] Loading Clash Royale models: ['detector1_v0.7.13.pt', 'detector2_v0.7.13.pt']
+[capture] YOLOv8l summary (fused): 112 layers, 43,672,143 parameters, 0 gradients, 165.2 GFLOPs
+[capture] [INFO] Model layers fused (Conv+BN merge)
+[capture] [INFO] Model set to FP16 half precision on mps
+[capture] YOLOv8l summary (fused): 112 layers, 43,672,143 parameters, 0 gradients, 165.2 GFLOPs
+[Match] started
+[Snapshot] Planning from snapshot #1
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1276.83, "input_bytes": 1098, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1512, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 1440.5, "api_latency_ms": 1276.83, "approx_decision_latency_ms": 2717.33, "decision_latency_sec_context": 2.97}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #2
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 897.14, "input_bytes": 1133, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1528, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 515.25, "api_latency_ms": 897.14, "approx_decision_latency_ms": 1412.39, "decision_latency_sec_context": 1.85}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #4
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 932.57, "input_bytes": 1153, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1537, "output_tokens": 32, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 167.32, "api_latency_ms": 932.57, "approx_decision_latency_ms": 1099.89, "decision_latency_sec_context": 1.45}
+[AI Action] Decision: play musketeer at (0.50, 0.70)
+[AI Action] Result: executed musketeer from slot 3 to (0.50, 0.70)
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 8, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "ice-spirit", "confidence": 0.6142, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 13.9537}, {"slot": 2, "label": "the-log", "confidence": 0.796, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 15.8547}, {"slot": 3, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #8
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 967.24, "input_bytes": 1169, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1544, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 703.54, "api_latency_ms": 967.24, "approx_decision_latency_ms": 1670.78, "decision_latency_sec_context": 1.97}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #9
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1018.67, "input_bytes": 1270, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1575, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 162.4, "api_latency_ms": 1018.67, "approx_decision_latency_ms": 1181.07, "decision_latency_sec_context": 1.43}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #11
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 975.9, "input_bytes": 1272, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1576, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 156.56, "api_latency_ms": 975.9, "approx_decision_latency_ms": 1132.46, "decision_latency_sec_context": 1.42}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #12
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1536.21, "input_bytes": 1271, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1575, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 505.83, "api_latency_ms": 1536.21, "approx_decision_latency_ms": 2042.04, "decision_latency_sec_context": 1.84}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #14
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 962.89, "input_bytes": 1257, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1571, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 555.21, "api_latency_ms": 962.89, "approx_decision_latency_ms": 1518.1, "decision_latency_sec_context": 1.88}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #15
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1022.79, "input_bytes": 1258, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1572, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 150.95, "api_latency_ms": 1022.79, "approx_decision_latency_ms": 1173.74, "decision_latency_sec_context": 1.44}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #17
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1003.88, "input_bytes": 1251, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1569, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 548.48, "api_latency_ms": 1003.88, "approx_decision_latency_ms": 1552.36, "decision_latency_sec_context": 1.85}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #18
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 3366.64, "input_bytes": 1255, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1569, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 164.13, "api_latency_ms": 3366.64, "approx_decision_latency_ms": 3530.77, "decision_latency_sec_context": 1.77}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #23
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 798.3, "input_bytes": 1250, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1568, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 158.56, "api_latency_ms": 798.3, "approx_decision_latency_ms": 956.86, "decision_latency_sec_context": 1.74}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #25
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2520.56, "input_bytes": 1524, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1673, "output_tokens": 34, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 962.63, "api_latency_ms": 2520.56, "approx_decision_latency_ms": 3483.19, "decision_latency_sec_context": 2.74}
+[AI Action] Decision: play ice-spirit at (0.22, 0.65)
+[AI Action] Result: executed ice-spirit from slot 1 to (0.22, 0.65)
+[Snapshot] Planning from snapshot #28
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1178.57, "input_bytes": 1499, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1665, "output_tokens": 26, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 638.97, "api_latency_ms": 1178.57, "approx_decision_latency_ms": 1817.54, "decision_latency_sec_context": 2.44}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 29, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 2, "label": "the-log", "confidence": 0.8246, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 16.5187}, {"slot": 3, "label": "skeleton", "confidence": 0.7119, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 16.2733}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #29
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1148.47, "input_bytes": 1229, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1561, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 639.99, "api_latency_ms": 1148.47, "approx_decision_latency_ms": 1788.46, "decision_latency_sec_context": 2.39}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #30
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2595.22, "input_bytes": 1772, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1777, "output_tokens": 45, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 657.53, "api_latency_ms": 2595.22, "approx_decision_latency_ms": 3252.75, "decision_latency_sec_context": 2.61}
+[AI Action] Decision: play the-log at (0.64, 0.42)
+[AI Action] Result: executed the-log from slot 2 to (0.64, 0.42)
+[Snapshot] Planning from snapshot #33
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1096.42, "input_bytes": 2043, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1873, "output_tokens": 35, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 598.81, "api_latency_ms": 1096.42, "approx_decision_latency_ms": 1695.23, "decision_latency_sec_context": 2.56}
+[AI Action] Decision: play ice-golem at (0.74, 0.55)
+[AI Action] Result: executed ice-golem from slot 1 to (0.74, 0.55)
+[Snapshot] Planning from snapshot #34
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1549.26, "input_bytes": 1872, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1811, "output_tokens": 32, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 809.42, "api_latency_ms": 1549.26, "approx_decision_latency_ms": 2358.68, "decision_latency_sec_context": 2.84}
+[AI Action] Decision: play skeleton at (0.75, 0.48)
+[AI Action] Result: executed skeleton from slot 3 to (0.75, 0.48)
+[Snapshot] Planning from snapshot #36
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1145.53, "input_bytes": 1806, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1775, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 590.28, "api_latency_ms": 1145.53, "approx_decision_latency_ms": 1735.81, "decision_latency_sec_context": 2.34}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 37, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d13", "label": "skeleton", "distance": 126.05, "center": {"x": 279.0, "y": 274.0}, "confidence": 0.7741}], "slot_changed": false}
+[Snapshot] Planning from snapshot #37
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1328.9, "input_bytes": 2161, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1909, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 700.39, "api_latency_ms": 1328.9, "approx_decision_latency_ms": 2029.29, "decision_latency_sec_context": 2.52}
+[AI Action] Decision: play hog-rider at (0.78, 0.35)
+[AI Action] Result: executed hog-rider from slot 1 to (0.78, 0.35)
+[Snapshot] Planning from snapshot #39
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1544.75, "input_bytes": 1550, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1686, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 563.46, "api_latency_ms": 1544.75, "approx_decision_latency_ms": 2108.21, "decision_latency_sec_context": 2.26}
+[AI Action] Decision: play fireball at (0.80, 0.41)
+[AI Action] Result: executed fireball from slot 2 to (0.80, 0.41)
+[Snapshot] Planning from snapshot #42
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 915.32, "input_bytes": 1612, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1705, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 178.13, "api_latency_ms": 915.32, "approx_decision_latency_ms": 1093.45, "decision_latency_sec_context": 1.84}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 43, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "ice-spirit", "confidence": 0.5612, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 11.0245}, {"slot": 2, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 3, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #43
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 950.66, "input_bytes": 1754, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1766, "output_tokens": 32, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 600.47, "api_latency_ms": 950.66, "approx_decision_latency_ms": 1551.13, "decision_latency_sec_context": 2.24}
+[AI Action] Decision: play ice-spirit at (0.22, 0.52)
+[AI Action] Result: executed ice-spirit from slot 1 to (0.22, 0.52)
+[Snapshot] Planning from snapshot #44
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1843.13, "input_bytes": 1643, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1722, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 149.52, "api_latency_ms": 1843.13, "approx_decision_latency_ms": 1992.65, "decision_latency_sec_context": 1.7}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #46
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 914.17, "input_bytes": 1281, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1581, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 686.97, "api_latency_ms": 914.17, "approx_decision_latency_ms": 1601.14, "decision_latency_sec_context": 2.21}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 47, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": false, "current_hand": [{"slot": 1, "label": "ice-spirit", "confidence": 0.5656, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 11.019}, {"slot": 2, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 3, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #47
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 916.08, "input_bytes": 1315, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1595, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 754.66, "api_latency_ms": 916.08, "approx_decision_latency_ms": 1670.74, "decision_latency_sec_context": 2.2}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #48
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1092.46, "input_bytes": 1526, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1682, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 614.93, "api_latency_ms": 1092.46, "approx_decision_latency_ms": 1707.39, "decision_latency_sec_context": 2.05}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #49
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 794.69, "input_bytes": 1255, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1575, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 549.98, "api_latency_ms": 794.69, "approx_decision_latency_ms": 1344.67, "decision_latency_sec_context": 1.92}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #50
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1797.76, "input_bytes": 1249, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1572, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 595.78, "api_latency_ms": 1797.76, "approx_decision_latency_ms": 2393.54, "decision_latency_sec_context": 2.0}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #52
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1504.41, "input_bytes": 1289, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1583, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 578.87, "api_latency_ms": 1504.41, "approx_decision_latency_ms": 2083.28, "decision_latency_sec_context": 2.06}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #54
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 861.72, "input_bytes": 1245, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1569, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 160.1, "api_latency_ms": 861.72, "approx_decision_latency_ms": 1021.82, "decision_latency_sec_context": 1.63}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #55
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1640.52, "input_bytes": 1452, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1653, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 613.17, "api_latency_ms": 1640.52, "approx_decision_latency_ms": 2253.69, "decision_latency_sec_context": 2.05}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #56
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 906.12, "input_bytes": 1294, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1586, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 588.11, "api_latency_ms": 906.12, "approx_decision_latency_ms": 1494.23, "decision_latency_sec_context": 2.03}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #57
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1492.72, "input_bytes": 1281, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1581, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 673.97, "api_latency_ms": 1492.72, "approx_decision_latency_ms": 2166.69, "decision_latency_sec_context": 2.19}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #58
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1392.88, "input_bytes": 1273, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1579, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 541.77, "api_latency_ms": 1392.88, "approx_decision_latency_ms": 1934.65, "decision_latency_sec_context": 2.09}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #60
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 3385.77, "input_bytes": 1279, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1580, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 604.22, "api_latency_ms": 3385.77, "approx_decision_latency_ms": 3989.99, "decision_latency_sec_context": 2.48}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #64
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1297.16, "input_bytes": 1282, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1582, "output_tokens": 32, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 524.18, "api_latency_ms": 1297.16, "approx_decision_latency_ms": 1821.34, "decision_latency_sec_context": 2.33}
+[AI Action] Decision: play musketeer at (0.22, 0.65)
+[AI Action] Result: executed musketeer from slot 3 to (0.22, 0.65)
+[Snapshot] Planning from snapshot #67
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1329.64, "input_bytes": 1288, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1587, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 556.1, "api_latency_ms": 1329.64, "approx_decision_latency_ms": 1885.74, "decision_latency_sec_context": 2.34}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 68, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "ice-spirit", "confidence": 0.5206, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 10.8009}, {"slot": 2, "label": "the-log", "confidence": 0.8262, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 16.6138}, {"slot": 3, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #68
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 984.69, "input_bytes": 1253, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1574, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 563.97, "api_latency_ms": 984.69, "approx_decision_latency_ms": 1548.66, "decision_latency_sec_context": 2.37}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #69
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1957.58, "input_bytes": 1534, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1686, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 629.5, "api_latency_ms": 1957.58, "approx_decision_latency_ms": 2587.08, "decision_latency_sec_context": 2.47}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #71
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1012.35, "input_bytes": 1674, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1740, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 662.12, "api_latency_ms": 1012.35, "approx_decision_latency_ms": 1674.47, "decision_latency_sec_context": 2.52}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #72
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1645.54, "input_bytes": 1700, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1753, "output_tokens": 40, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 636.41, "api_latency_ms": 1645.54, "approx_decision_latency_ms": 2281.95, "decision_latency_sec_context": 2.51}
+[AI Action] Decision: play the-log at (0.70, 0.26)
+[AI Action] Result: executed the-log from slot 2 to (0.70, 0.26)
+[Snapshot] Planning from snapshot #74
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 882.19, "input_bytes": 1493, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1674, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 557.67, "api_latency_ms": 882.19, "approx_decision_latency_ms": 1439.86, "decision_latency_sec_context": 2.37}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #75
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 969.18, "input_bytes": 1731, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1760, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 661.07, "api_latency_ms": 969.18, "approx_decision_latency_ms": 1630.25, "decision_latency_sec_context": 2.17}
+[AI Action] Decision: play ice-golem at (0.78, 0.65)
+[AI Action] Result: executed ice-golem from slot 3 to (0.78, 0.65)
+[Snapshot] Planning from snapshot #76
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1701.02, "input_bytes": 1882, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1814, "output_tokens": 29, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 774.63, "api_latency_ms": 1701.02, "approx_decision_latency_ms": 2475.65, "decision_latency_sec_context": 2.33}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #77
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 947.45, "input_bytes": 1842, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1795, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 820.46, "api_latency_ms": 947.45, "approx_decision_latency_ms": 1767.91, "decision_latency_sec_context": 2.33}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #78
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2171.02, "input_bytes": 1524, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1684, "output_tokens": 44, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 1057.04, "api_latency_ms": 2171.02, "approx_decision_latency_ms": 3228.06, "decision_latency_sec_context": 2.72}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 80, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "ice-spirit", "confidence": 0.5473, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 11.9019}, {"slot": 2, "label": "skeleton", "confidence": 0.7898, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 24.5033}, {"slot": 3, "label": "hog-rider", "confidence": 0.748, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 12.9917}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #80
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 925.44, "input_bytes": 1533, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1682, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 603.31, "api_latency_ms": 925.44, "approx_decision_latency_ms": 1528.75, "decision_latency_sec_context": 2.14}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #81
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1223.9, "input_bytes": 1712, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1751, "output_tokens": 36, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 625.02, "api_latency_ms": 1223.9, "approx_decision_latency_ms": 1848.92, "decision_latency_sec_context": 2.18}
+[AI Action] Decision: play hog-rider at (0.22, 0.65)
+[AI Action] Result: executed hog-rider from slot 3 to (0.22, 0.65)
+[Snapshot] Planning from snapshot #83
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1235.25, "input_bytes": 1519, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1681, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 536.48, "api_latency_ms": 1235.25, "approx_decision_latency_ms": 1771.73, "decision_latency_sec_context": 2.04}
+[AI Action] Decision: play hog-rider at (0.75, 0.65)
+[AI Action] Result: executed hog-rider from slot 3 to (0.75, 0.65)
+[Snapshot] Planning from snapshot #85
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 906.32, "input_bytes": 2110, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1900, "output_tokens": 32, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 584.87, "api_latency_ms": 906.32, "approx_decision_latency_ms": 1491.19, "decision_latency_sec_context": 2.09}
+[AI Action] Decision: play ice-spirit at (0.75, 0.50)
+[AI Action] Result: executed ice-spirit from slot 1 to (0.75, 0.50)
+[Snapshot] Planning from snapshot #86
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1256.31, "input_bytes": 1718, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1753, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 614.69, "api_latency_ms": 1256.31, "approx_decision_latency_ms": 1871.0, "decision_latency_sec_context": 2.16}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #88
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 920.57, "input_bytes": 1469, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1661, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 564.88, "api_latency_ms": 920.57, "approx_decision_latency_ms": 1485.45, "decision_latency_sec_context": 2.01}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 89, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 2, "label": "skeleton", "confidence": 0.7822, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 23.4465}, {"slot": 3, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 4, "label": "cannon", "confidence": 0.5401, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 6.9564}]}
+[Snapshot] Planning from snapshot #89
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1028.57, "input_bytes": 1504, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1666, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 703.9, "api_latency_ms": 1028.57, "approx_decision_latency_ms": 1732.47, "decision_latency_sec_context": 2.16}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #90
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1467.39, "input_bytes": 1561, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1689, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 553.99, "api_latency_ms": 1467.39, "approx_decision_latency_ms": 2021.38, "decision_latency_sec_context": 1.92}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #91
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 843.9, "input_bytes": 1456, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1652, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 613.99, "api_latency_ms": 843.9, "approx_decision_latency_ms": 1457.89, "decision_latency_sec_context": 1.97}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #92
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1052.36, "input_bytes": 1534, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1683, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 547.11, "api_latency_ms": 1052.36, "approx_decision_latency_ms": 1599.47, "decision_latency_sec_context": 1.89}
+[AI Action] Decision: play fireball at (0.75, 0.58)
+[AI Action] Result: executed fireball from slot 3 to (0.75, 0.58)
+[Snapshot] Planning from snapshot #94
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1053.51, "input_bytes": 1300, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1584, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 572.99, "api_latency_ms": 1053.51, "approx_decision_latency_ms": 1626.5, "decision_latency_sec_context": 1.89}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #96
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 842.04, "input_bytes": 1160, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1540, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 605.57, "api_latency_ms": 842.04, "approx_decision_latency_ms": 1447.61, "decision_latency_sec_context": 1.91}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #97
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 788.96, "input_bytes": 1263, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1576, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 690.06, "api_latency_ms": 788.96, "approx_decision_latency_ms": 1479.02, "decision_latency_sec_context": 1.94}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #98
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 3278.37, "input_bytes": 1263, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1575, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 642.14, "api_latency_ms": 3278.37, "approx_decision_latency_ms": 3920.51, "decision_latency_sec_context": 2.19}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #101
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 919.82, "input_bytes": 1281, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1580, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 579.3, "api_latency_ms": 919.82, "approx_decision_latency_ms": 1499.12, "decision_latency_sec_context": 2.11}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #102
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 922.75, "input_bytes": 1233, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1564, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 562.03, "api_latency_ms": 922.75, "approx_decision_latency_ms": 1484.78, "decision_latency_sec_context": 2.02}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #103
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1432.77, "input_bytes": 1453, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1647, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 163.41, "api_latency_ms": 1432.77, "approx_decision_latency_ms": 1596.18, "decision_latency_sec_context": 1.7}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #105
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 966.13, "input_bytes": 1697, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1736, "output_tokens": 30, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 574.98, "api_latency_ms": 966.13, "approx_decision_latency_ms": 1541.11, "decision_latency_sec_context": 2.1}
+[AI Action] Decision: play skeleton at (0.50, 0.65)
+[AI Action] Result: executed skeleton from slot 2 to (0.50, 0.65)
+[Snapshot] Planning from snapshot #106
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 982.98, "input_bytes": 2013, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1843, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 568.66, "api_latency_ms": 982.98, "approx_decision_latency_ms": 1551.64, "decision_latency_sec_context": 2.09}
+[AI Action] Decision: play the-log at (0.50, 0.35)
+[AI Action] Result: executed the-log from slot 3 to (0.50, 0.35)
+[Snapshot] Planning from snapshot #108
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1342.35, "input_bytes": 1693, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1737, "output_tokens": 34, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 667.52, "api_latency_ms": 1342.35, "approx_decision_latency_ms": 2009.87, "decision_latency_sec_context": 2.25}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #109
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1021.05, "input_bytes": 1778, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1768, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 672.2, "api_latency_ms": 1021.05, "approx_decision_latency_ms": 1693.25, "decision_latency_sec_context": 2.28}
+[AI Action] Decision: play ice-golem at (0.50, 0.65)
+[AI Action] Result: executed ice-golem from slot 2 to (0.50, 0.65)
+[Snapshot] Planning from snapshot #110
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1010.47, "input_bytes": 1965, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1830, "output_tokens": 30, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 649.1, "api_latency_ms": 1010.47, "approx_decision_latency_ms": 1659.57, "decision_latency_sec_context": 1.97}
+[AI Action] Decision: play cannon at (0.75, 0.55)
+[AI Action] Result: executed cannon from slot 4 to (0.75, 0.55)
+[Snapshot] Planning from snapshot #112
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 950.88, "input_bytes": 1879, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1799, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 603.86, "api_latency_ms": 950.88, "approx_decision_latency_ms": 1554.74, "decision_latency_sec_context": 1.93}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #113
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 939.86, "input_bytes": 1727, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1748, "output_tokens": 34, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 694.7, "api_latency_ms": 939.86, "approx_decision_latency_ms": 1634.56, "decision_latency_sec_context": 2.03}
+[AI Action] Decision: play ice-spirit at (0.76, 0.57)
+[AI Action] Result: executed ice-spirit from slot 2 to (0.76, 0.57)
+[Snapshot] Planning from snapshot #114
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 4257.58, "input_bytes": 1982, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1841, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 564.74, "api_latency_ms": 4257.58, "approx_decision_latency_ms": 4822.32, "decision_latency_sec_context": 2.25}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 119, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d14", "label": "ice-spirit", "distance": 46.97, "center": {"x": 300.5, "y": 430.5}, "confidence": 0.3401}], "slot_changed": true}
+[Snapshot] Planning from snapshot #119
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1059.2, "input_bytes": 1454, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1647, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 150.08, "api_latency_ms": 1059.2, "approx_decision_latency_ms": 1209.28, "decision_latency_sec_context": 1.85}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #120
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1614.93, "input_bytes": 1480, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1660, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 578.62, "api_latency_ms": 1614.93, "approx_decision_latency_ms": 2193.55, "decision_latency_sec_context": 2.35}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #122
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 836.71, "input_bytes": 1518, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1674, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 651.26, "api_latency_ms": 836.71, "approx_decision_latency_ms": 1487.97, "decision_latency_sec_context": 2.36}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #123
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1023.64, "input_bytes": 1789, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1782, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 594.91, "api_latency_ms": 1023.64, "approx_decision_latency_ms": 1618.55, "decision_latency_sec_context": 2.31}
+[AI Action] Decision: play hog-rider at (0.22, 0.35)
+[AI Action] Result: executed hog-rider from slot 3 to (0.22, 0.35)
+[Snapshot] Planning from snapshot #124
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 852.1, "input_bytes": 1301, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1593, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 600.15, "api_latency_ms": 852.1, "approx_decision_latency_ms": 1452.25, "decision_latency_sec_context": 2.29}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #125
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 942.05, "input_bytes": 1520, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1681, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 565.67, "api_latency_ms": 942.05, "approx_decision_latency_ms": 1507.72, "decision_latency_sec_context": 2.26}
+[AI Action] Decision: play hog-rider at (0.22, 0.65)
+[AI Action] Result: executed hog-rider from slot 3 to (0.22, 0.65)
+[Snapshot] Planning from snapshot #127
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2109.51, "input_bytes": 1743, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1756, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 584.0, "api_latency_ms": 2109.51, "approx_decision_latency_ms": 2693.51, "decision_latency_sec_context": 2.42}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 129, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "musketeer", "confidence": 0.8281, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 30.8117}, {"slot": 2, "label": "the-log", "confidence": 0.7356, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 13.7371}, {"slot": 3, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #129
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1329.85, "input_bytes": 2316, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1986, "output_tokens": 34, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 640.57, "api_latency_ms": 1329.85, "approx_decision_latency_ms": 1970.42, "decision_latency_sec_context": 2.11}
+[AI Action] Decision: play the-log at (0.27, 0.39)
+[AI Action] Result: executed the-log from slot 2 to (0.27, 0.39)
+[Snapshot] Planning from snapshot #131
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2394.15, "input_bytes": 2402, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 2015, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 584.39, "api_latency_ms": 2394.15, "approx_decision_latency_ms": 2978.54, "decision_latency_sec_context": 2.22}
+[AI Action] Decision: play fireball at (0.78, 0.56)
+[AI Action] Result: executed fireball from slot 2 to (0.78, 0.56)
+[Snapshot] Planning from snapshot #134
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2126.39, "input_bytes": 1856, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1811, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 897.87, "api_latency_ms": 2126.39, "approx_decision_latency_ms": 3024.26, "decision_latency_sec_context": 2.6}
+[AI Action] Decision: play ice-golem at (0.22, 0.65)
+[AI Action] Result: executed ice-golem from slot 2 to (0.22, 0.65)
+[Snapshot] Planning from snapshot #136
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2457.09, "input_bytes": 1801, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1788, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 667.15, "api_latency_ms": 2457.09, "approx_decision_latency_ms": 3124.24, "decision_latency_sec_context": 2.57}
+[AI Action] Decision: play ice-spirit at (0.24, 0.49)
+[AI Action] Result: executed ice-spirit from slot 2 to (0.24, 0.49)
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 140, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d24", "label": "ice-spirit", "distance": 126.02, "center": {"x": 56.0, "y": 528.5}, "confidence": 0.3366}], "slot_changed": true}
+[Snapshot] Planning from snapshot #140
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 7591.13, "input_bytes": 1938, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1846, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 617.65, "api_latency_ms": 7591.13, "approx_decision_latency_ms": 8208.78, "decision_latency_sec_context": 3.34}
+[AI Action] Decision: play hog-rider at (0.22, 0.55)
+[AI Action] Result: executed hog-rider from slot 2 to (0.22, 0.55)
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 149, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "musketeer", "confidence": 0.8166, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 28.8659}, {"slot": 2, "label": "skeleton", "confidence": 0.7793, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 22.5508}, {"slot": 3, "label": "the-log", "confidence": 0.8294, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 17.3484}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #149
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1844.06, "input_bytes": 1529, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1672, "output_tokens": 32, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 571.89, "api_latency_ms": 1844.06, "approx_decision_latency_ms": 2415.95, "decision_latency_sec_context": 3.42}
+[AI Action] Decision: play musketeer at (0.22, 0.65)
+[AI Action] Result: executed musketeer from slot 1 to (0.22, 0.65)
+[Snapshot] Planning from snapshot #151
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1046.57, "input_bytes": 1614, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1700, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 156.14, "api_latency_ms": 1046.57, "approx_decision_latency_ms": 1202.71, "decision_latency_sec_context": 3.02}
+[AI Action] Decision: play fireball at (0.78, 0.31)
+[AI Action] Result: executed fireball from slot 2 to (0.78, 0.31)
+[Snapshot] Planning from snapshot #153
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1778.1, "input_bytes": 2398, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1993, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 562.02, "api_latency_ms": 1778.1, "approx_decision_latency_ms": 2340.12, "decision_latency_sec_context": 3.38}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 155, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "ice-golem", "confidence": 0.636, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 17.4275}, {"slot": 2, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 3, "label": "the-log", "confidence": 0.8397, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 18.3158}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #155
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1706.36, "input_bytes": 2298, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1973, "output_tokens": 26, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 597.28, "api_latency_ms": 1706.36, "approx_decision_latency_ms": 2303.64, "decision_latency_sec_context": 3.47}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #157
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1978.41, "input_bytes": 1920, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1828, "output_tokens": 32, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 570.56, "api_latency_ms": 1978.41, "approx_decision_latency_ms": 2548.97, "decision_latency_sec_context": 3.39}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #159
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 886.72, "input_bytes": 2165, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1916, "output_tokens": 24, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 554.85, "api_latency_ms": 886.72, "approx_decision_latency_ms": 1441.57, "decision_latency_sec_context": 3.22}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #160
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1432.76, "input_bytes": 1773, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1775, "output_tokens": 35, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 508.45, "api_latency_ms": 1432.76, "approx_decision_latency_ms": 1941.21, "decision_latency_sec_context": 3.04}
+[AI Action] Decision: play ice-spirit at (0.75, 0.65)
+[AI Action] Result: executed ice-spirit from slot 2 to (0.75, 0.65)
+[Snapshot] Planning from snapshot #162
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1443.77, "input_bytes": 1468, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1658, "output_tokens": 28, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 530.5, "api_latency_ms": 1443.77, "approx_decision_latency_ms": 1974.27, "decision_latency_sec_context": 2.3}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 164, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "ice-golem", "confidence": 0.6839, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 20.2221}, {"slot": 2, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 3, "label": "the-log", "confidence": 0.8409, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 18.5374}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #164
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2388.25, "input_bytes": 2340, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1979, "output_tokens": 47, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 550.84, "api_latency_ms": 2388.25, "approx_decision_latency_ms": 2939.09, "decision_latency_sec_context": 2.38}
+[AI Action] Decision: play ice-golem at (0.75, 0.65)
+[AI Action] Result: executed ice-golem from slot 1 to (0.75, 0.65)
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 167, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d17", "label": "ice-golem", "distance": 49.45, "center": {"x": 274.0, "y": 492.0}, "confidence": 0.5821}], "slot_changed": false}
+[Snapshot] Planning from snapshot #167
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2317.05, "input_bytes": 1779, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1774, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 555.42, "api_latency_ms": 2317.05, "approx_decision_latency_ms": 2872.47, "decision_latency_sec_context": 2.55}
+[AI Action] Decision: play hog-rider at (0.22, 0.65)
+[AI Action] Result: executed hog-rider from slot 2 to (0.22, 0.65)
+[Snapshot] Planning from snapshot #170
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2782.49, "input_bytes": 2096, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1895, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 495.54, "api_latency_ms": 2782.49, "approx_decision_latency_ms": 3278.03, "decision_latency_sec_context": 2.61}
+[AI Action] Decision: play hog-rider at (0.22, 0.65)
+[AI Action] Result: executed hog-rider from slot 2 to (0.22, 0.65)
+[Snapshot] Planning from snapshot #173
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 938.33, "input_bytes": 1817, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1784, "output_tokens": 32, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 592.68, "api_latency_ms": 938.33, "approx_decision_latency_ms": 1531.01, "decision_latency_sec_context": 2.61}
+[AI Action] Decision: play musketeer at (0.50, 0.65)
+[AI Action] Result: executed musketeer from slot 2 to (0.50, 0.65)
+[Snapshot] Planning from snapshot #174
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 2253.59, "input_bytes": 1774, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1764, "output_tokens": 39, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 587.61, "api_latency_ms": 2253.59, "approx_decision_latency_ms": 2841.2, "decision_latency_sec_context": 2.64}
+[AI Action] Decision: play the-log at (0.66, 0.36)
+[AI Action] Result: executed the-log from slot 3 to (0.66, 0.36)
+[Snapshot] Planning from snapshot #177
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1020.36, "input_bytes": 2464, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 2028, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 570.29, "api_latency_ms": 1020.36, "approx_decision_latency_ms": 1590.65, "decision_latency_sec_context": 2.64}
+[AI Action] Decision: play fireball at (0.72, 0.40)
+[AI Action] Result: executed fireball from slot 2 to (0.72, 0.40)
+[Snapshot] Planning from snapshot #180
+[WARN] claude-haiku-4-5 took 11.1s for one decision. The SDK retries 429/529 silently, so an overloaded model reads as a frozen bot. A faster model keeps the loop live: --model claude-sonnet-5
+[WARN] Planner error: Claude response hit max_tokens before completing the decision. Idling one tick.
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 194, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "skeleton", "confidence": 0.7708, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 22.4992}, {"slot": 2, "label": "ice-golem", "confidence": 0.5897, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 13.0656}, {"slot": 3, "label": "ice-spirit", "confidence": 0.4821, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 8.2291}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #195
+[Latency] API: {"model": "claude-haiku-4-5", "provider": "anthropic", "effort": null, "thinking": false, "latency_ms": 1919.45, "input_bytes": 1631, "instructions_chars": 2207, "response_status": "end_turn", "usage": {"input_tokens": 1709, "output_tokens": 33, "cache_read_input_tokens": 0}}
+[Latency] Summary: {"capture_total_latency_ms": 574.93, "api_latency_ms": 1919.45, "approx_decision_latency_ms": 2494.38, "decision_latency_sec_context": 3.92}
+[AI Action] Decision: play ice-golem at (0.70, 0.65)
+[AI Action] Result: executed ice-golem from slot 2 to (0.70, 0.65)
+[Match] finished (1)
+[INFO] stopping: played 1 match(es)
+[INFO] latency figure saved: figures/battle_20260805_001822.png
+[INFO] recording saved: recordings/battle_20260805_001822.mp4 (11841 frames)

@@ -17,3 +17,6 @@ requests>=2.31.0
 # Claude Messages API, when --provider anthropic is used. Unpinned: the planner
 # uses structured outputs, which needs a reasonably recent SDK.
 anthropic
+
+# Per-battle latency figure, drawn on its own thread with the Agg backend.
+matplotlib>=3.7.0

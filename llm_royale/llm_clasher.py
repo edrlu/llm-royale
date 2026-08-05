@@ -48,6 +48,9 @@ TRIPLE_ELIXIR_RATE = 0.93
 DOUBLE_ELIXIR_AT_SEC = 180.0   # 3 minutes into the match
 TRIPLE_ELIXIR_AT_SEC = 240.0   # 4 minutes into the match
 
+# How often to report that the loop is still waiting for a battle.
+WAITING_REPORT_SEC = 5.0
+
 # Consecutive snapshots without a battle before the match counts as over.
 MATCH_END_CONFIRM_SNAPSHOTS = 6
 
@@ -236,7 +239,6 @@ def wait_for_space() -> None:
 
 def format_ai_decision(decision: dict) -> str:
     action = str(decision.get("action", "idle")).lower()
-    reason = str(decision.get("reason", "")).strip()
 
     if action == "place_card":
         parts = [f"play {decision.get('card', '?')}"]
@@ -246,12 +248,8 @@ def format_ai_decision(decision: dict) -> str:
             parts.append(f"at ({float(x_norm):.2f}, {float(y_norm):.2f})")
         elif decision.get("x") is not None and decision.get("y") is not None:
             parts.append(f"at ({float(decision['x']):.0f}, {float(decision['y']):.0f})")
-        if reason:
-            parts.append(f"because {reason}")
         return " ".join(parts)
 
-    if reason:
-        return f"{action}: {reason}"
     return action
 
 
@@ -295,6 +293,9 @@ class CaptureWorker:
     def _run(self) -> None:
         cmd = [
             self.python_bin,
+            # Same reason as run.sh: its stdout is a pipe, so without this its
+            # per-snapshot lines sit in a buffer and never reach the log.
+            "-u",
             "-m",
             "llm_royale.clash_capture",
             "--preset",
@@ -343,6 +344,11 @@ class Planner:
     only `request_decision_json` differs per provider. Keeping the split here
     means a change to how the board is described cannot drift between them.
     """
+
+    # Provider SDK exceptions the main loop should ride out rather than die on.
+    # Empty here because the OpenAI planner raises through `requests`, which the
+    # loop already handles by name.
+    transient_api_errors: tuple = ()
 
     def __init__(self, model: str):
         self.model = model
@@ -509,84 +515,66 @@ class Planner:
             "friendly_buildings": pick(snapshot.get("grouped", {}).get("buildings", [])),
         }
 
-    def build_instructions(self, width: int, height: int, decision_latency_sec: float, river_y: float = 0.5) -> str:
-        R = river_y
+    def build_instructions(self) -> str:
+        """The static half of every request.
+
+        Deliberately free of strategy: the model is told the deck, the frame of
+        reference, what the fields mean, and what it is not allowed to do, then
+        left to work out the play itself. Two reasons. The old prompt's tactics
+        were a fixed script that could not answer a board it had not anticipated,
+        and every line of it was resent on every call — at roughly one decision
+        every four seconds, prompt length is latency.
+
+        Nothing here varies between calls, which is the point: an unchanging
+        system prompt is a cacheable prefix. Everything live, including the
+        control lag, travels in the user message.
+        """
         return (
-            "You are a top-ladder Hog 2.6 player. Deck: hog-rider(4), musketeer(4), "
-            "ice-spirit(1), ice-golem(2), fireball(4), the-log(2), cannon(3), skeleton(1).\n"
-            "Return STRICT JSON ONLY, one of:\n"
-            '{"action":"idle","reason":"..."}\n'
-            '{"action":"place_card","card":"<name>","x_norm":<0..1>,"y_norm":<0..1>,"reason":"..."}\n'
+            "You play Clash Royale. Your deck: hog-rider(4), musketeer(4), "
+            "ice-spirit(1), ice-golem(2), fireball(4), the-log(2), cannon(3), skeleton(1). "
+            "Costs in parentheses are elixir.\n"
             "\n"
-            "COORDINATE SYSTEM:\n"
-            f"Normalized 0-1. Top of screen = 0.0 (enemy king). River/bridge ≈ {R:.2f}.\n"
-            f"Your side = y > {R:.2f}. Enemy side = y < {R:.2f}. Arena ends ~0.80 (below is hand bar).\n"
-            "Left lane x≈0.22, right lane x≈0.78. Center x≈0.50.\n"
+            "COORDINATES\n"
+            "Normalized 0-1 over the arena. y=0 is the enemy king end, y increases toward you. "
+            "`board.river_y_norm` is the river; y above it is enemy territory, y below it is yours. "
+            "Placeable region is `board.place_bbox_norm`. Left lane x≈0.22, center x≈0.50, right x≈0.78.\n"
             "\n"
-            # Measured from detected tower boxes on the iPhone capture. The lanes
-            # sit further out than they look: 0.22/0.78, not 0.33/0.67.
-            "LANDMARK POSITIONS (approximate y_norm):\n"
-            "- Enemy king tower:      y≈0.21, x≈0.50\n"
-            "- Enemy princess towers:  y≈0.29, left x≈0.22, right x≈0.78\n"
-            f"- Bridge/river:           y≈{R:.2f}, bridges at x≈0.22 and x≈0.78\n"
-            "- YOUR princess towers:   y≈0.64, left x≈0.22, right x≈0.78\n"
-            "- YOUR king tower:        y≈0.72, x≈0.50\n"
-            "The `towers` dict has LIVE detected positions (x,y) — use those when available, "
-            "fall back to these landmarks only if a tower is missing from detection.\n"
+            "INPUT FIELDS\n"
+            "- `elixir`: your current elixir, 0-10.\n"
+            "- `game_phase`: 1x, 2x or 3x elixir generation rate.\n"
+            "- `hand`: your four slots; a null label is a card the vision could not read, not an empty slot.\n"
+            "- `playable_cards` / `playable_with_cost`: the cards you may legally play right now.\n"
+            "- `towers`: each tower's `hp` (0-100%) and detected `x`,`y`.\n"
+            "- `enemy_on_our_side`, `friendly_on_enemy_side`, `friendly_troops`, `friendly_buildings`, "
+            "`top_threats`: detected units with `x_norm`,`y_norm`.\n"
+            "- `lane_balance`: unit counts and pressure per lane.\n"
+            "- `cycle`: cards recently played and what is coming back.\n"
+            "- `recent_actions`: your own last few plays.\n"
+            "- `decision_latency_sec`: see STALE STATE.\n"
             "\n"
-            "HOG 2.6 PRO STRATEGY:\n"
+            "STALE STATE\n"
+            "The snapshot was captured `decision_latency_sec` seconds ago and your placement lands "
+            "that much later still. Units have moved since. Lead moving targets, and treat a threat's "
+            "listed position as where it was, not where it is.\n"
             "\n"
-            "DEFENSE:\n"
-            "- Cannon: place it between your two princess towers (x≈0.50, y between your princess towers "
-            "and river). A 4-3 plant (4 tiles from river, 3 tiles from center) pulls hog to cannon "
-            "with both princess towers in range. Check `towers` for your princess tower y-coords.\n"
-            "- Musketeer deep behind the cannon — she outranges most troops and stays alive to counter-push.\n"
-            "- Ice-golem kites melee units to the opposite lane. Drop it where you want the enemy to walk.\n"
-            "- Skeletons surround high-DPS single-target units (mini pekka, prince, pekka). Place on top of them.\n"
-            "- Ice-spirit freezes and resets. Great vs inferno tower, sparky, prince charge.\n"
-            "- Log clears swarms (skeleton army, goblin barrel, princess). Roll it through them.\n"
+            "YOUR TASK\n"
+            "Choose the action that maximizes your probability of winning from this state. "
+            "Decide the strategy yourself — no playstyle is prescribed. Idle is a real move; "
+            "take it when no placement beats holding elixir.\n"
             "\n"
-            "OFFENSE — Hog 2.6 wins by OUTCYCLING:\n"
-            "- Hog at the bridge (y≈river_y from `board`) in the lane the opponent just defended. They can't defend both.\n"
-            "- After defending, IMMEDIATELY counter-push hog opposite lane. This is the #1 win condition.\n"
-            "- Ice-spirit or ice-golem in front of hog tanks one hit and lets hog get extra swings.\n"
-            "- Fireball + log chip on a low-HP princess tower to finish it off.\n"
-            "- Fireball value: hit enemy troops clustered near their tower to get tower chip + troop damage.\n"
-            "- In 2x/3x elixir be much more aggressive — cycle hog faster, pressure both lanes.\n"
+            "CONSTRAINTS\n"
+            "- Play only a card listed in `playable_cards`. If it is empty, idle.\n"
+            "- Never play a card costing more than `elixir`.\n"
+            "- Do not replay a card your `recent_actions` show you just played, unless the board "
+            "makes repeating it clearly correct.\n"
+            "- x_norm and y_norm must fall inside `board.place_bbox_norm`.\n"
+            "- Spells must target a position where a unit or tower actually appears in the snapshot.\n"
+            "- For idle, set card, x_norm and y_norm to null.\n"
             "\n"
-            "SPELL USAGE:\n"
-            "- Log: aim at the enemy tower's x,y from `towers` to chip it, or at enemy troops' x_norm/y_norm. "
-            "Log rolls DOWNWARD from where you place it — place it slightly ABOVE (lower y_norm) your target.\n"
-            "- Fireball: aim at the enemy unit's x_norm/y_norm position, or at the tower's x,y for chip. "
-            "Fireball hits a circle around the target point.\n"
-            "- NEVER throw spells at empty space. Always target something visible in the snapshot.\n"
-            "\n"
-            "DATA FIELDS:\n"
-            "- `enemy_on_our_side`: enemies that crossed the river — DEFEND THESE FIRST.\n"
-            "- `friendly_on_enemy_side` / `friendly_troops`: your surviving units.\n"
-            "- `towers`: each tower has `hp` (0-100%), `x` and `y` (detected position). "
-            "Use tower x/y to aim spells AT the tower. Use tower positions to place cannon between your princess towers.\n"
-            "- `game_phase`: 1x/2x/3x elixir speed. Push more aggressively in 2x/3x.\n"
-            "- `cycle`: recent plays + upcoming cards. Plan your next combo.\n"
-            "- `recent_actions`: what you just did — don't repeat the same card back-to-back.\n"
-            "- Unit positions have x_norm/y_norm — use these coords when targeting spells on them.\n"
-            "\n"
-            "PRIORITIES:\n"
-            "1. Defend enemy pushes — always. Use the cheapest card that works.\n"
-            "2. Counter-push with hog after defending. Opposite lane.\n"
-            "3. Support existing pushes with cheap cards behind your hog.\n"
-            "4. Start hog push when you have elixir advantage and no threat.\n"
-            "5. Spell-chip a low tower if fireball/log can finish it.\n"
-            "6. At 9+ elixir, play something cheap in the back to avoid leaking.\n"
-            "7. Otherwise IDLE — patience wins. Don't overcommit.\n"
-            "\n"
-            f"CONTROL LAG: ~{decision_latency_sec:.1f}s. Lead moving targets slightly.\n"
-            "\n"
-            "RULES:\n"
-            "- ONLY play cards in `playable_cards`. If empty → IDLE.\n"
-            "- null hand slot = hidden card, not empty.\n"
-            "- Never play a card you can't afford (check `elixir` vs `playable_with_cost`).\n"
-            "- Keep `reason` <= 8 words."
+            "OUTPUT\n"
+            "Strict JSON only, no prose:\n"
+            '{"action":"idle","card":null,"x_norm":null,"y_norm":null}\n'
+            '{"action":"place_card","card":"<name>","x_norm":<0..1>,"y_norm":<0..1>}'
         )
 
     def build_input(self, snapshot: dict) -> str:
@@ -607,9 +595,8 @@ class Planner:
                     "card": {"type": ["string", "null"], "enum": cards + [None]},
                     "x_norm": {"type": ["number", "null"]},
                     "y_norm": {"type": ["number", "null"]},
-                    "reason": {"type": "string"},
                 },
-                "required": ["action", "card", "x_norm", "y_norm", "reason"],
+                "required": ["action", "card", "x_norm", "y_norm"],
             },
         }
 
@@ -707,13 +694,8 @@ class Planner:
         return data
 
     def plan(self, snapshot: dict) -> dict:
-        compact = self.build_compact_snapshot(snapshot)
-        width = compact["w"]
-        height = compact["h"]
-        decision_latency_sec = compact["decision_latency_sec"]
-        river_y = float(compact["board"].get("river_y_norm") or 0.5)
         text = self.request_decision_json(
-            instructions=self.build_instructions(width, height, decision_latency_sec, river_y),
+            instructions=self.build_instructions(),
             input_text=self.build_input(snapshot),
         )
         return self._decision_from_text(text)
@@ -727,6 +709,9 @@ class OpenAIPlanner(Planner):
         self.api_key = os.environ.get("OPENAI_API_KEY")
         if not self.api_key:
             raise RuntimeError("OPENAI_API_KEY is required for the openai provider")
+        # Left off the request entirely unless asked for. Not every model takes
+        # a reasoning effort, and sending one by default would change how the
+        # existing setup behaves for the sake of a knob nobody set.
         # Left off the request entirely unless asked for. Not every model takes
         # a reasoning effort, and sending one by default would change how the
         # existing setup behaves for the sake of a knob nobody set.
@@ -765,6 +750,12 @@ class AnthropicPlanner(Planner):
             )
         self.effort = effort
         self.thinking = effort in EFFORT_REQUIRING_THINKING
+        # Older models reject `effort` outright rather than ignoring it, which
+        # kills the run on the first snapshot. Drop the parameter for those and
+        # say so, instead of asking the caller to remember which models take it.
+        self.supports_effort = self.model not in MODELS_WITHOUT_EFFORT
+        if not self.supports_effort:
+            print(f"[INFO] {self.model} does not accept an effort level; sending the request without one")
         if not os.environ.get("ANTHROPIC_API_KEY"):
             raise RuntimeError("ANTHROPIC_API_KEY is required for the anthropic provider")
         try:
@@ -775,6 +766,10 @@ class AnthropicPlanner(Planner):
                 "pip install anthropic."
             ) from e
         self._client = anthropic.Anthropic()
+        # Handed to the main loop so one bad call idles a tick instead of
+        # ending the match: the SDK raises its own exception types, which
+        # nothing in the loop's except clauses would otherwise match.
+        self.transient_api_errors = (anthropic.APIStatusError, anthropic.APIConnectionError)
 
     def decision_schema(self) -> dict:
         """The decision shape, in the schema dialect structured outputs accepts.
@@ -793,12 +788,14 @@ class AnthropicPlanner(Planner):
                 "card": {"anyOf": [{"type": "string", "enum": cards}, {"type": "null"}]},
                 "x_norm": nullable_number,
                 "y_norm": nullable_number,
-                "reason": {"type": "string"},
             },
-            "required": ["action", "card", "x_norm", "y_norm", "reason"],
+            "required": ["action", "card", "x_norm", "y_norm"],
         }
 
     def request_decision_json(self, *, instructions: str, input_text: str) -> str:
+        output_config = {"format": {"type": "json_schema", "schema": self.decision_schema()}}
+        if self.supports_effort:
+            output_config["effort"] = self.effort
         started = time.time()
         response = self._client.messages.create(
             model=self.model,
@@ -806,10 +803,7 @@ class AnthropicPlanner(Planner):
             system=instructions,
             messages=[{"role": "user", "content": input_text}],
             thinking={"type": "adaptive"} if self.thinking else {"type": "disabled"},
-            output_config={
-                "effort": self.effort,
-                "format": {"type": "json_schema", "schema": self.decision_schema()},
-            },
+            output_config=output_config,
         )
         elapsed_ms = round((time.time() - started) * 1000.0, 2)
 
@@ -817,7 +811,7 @@ class AnthropicPlanner(Planner):
         self.last_api_debug = {
             "model": self.model,
             "provider": "anthropic",
-            "effort": self.effort,
+            "effort": self.effort if self.supports_effort else None,
             "thinking": self.thinking,
             "latency_ms": elapsed_ms,
             "input_bytes": len(input_text.encode("utf-8")),
@@ -865,6 +859,18 @@ EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
 # Claude runs at this when no effort is given: the live loop wants speed, and
 # anything above `high` forces thinking on.
 DEFAULT_ANTHROPIC_EFFORT = "low"
+
+# Claude models that reject `effort` with a 400 rather than ignoring it. The
+# parameter arrived with Opus 4.5, so anything older than that predates it.
+MODELS_WITHOUT_EFFORT = {
+    "claude-haiku-4-5",
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-4-5",
+    "claude-sonnet-4-5-20250929",
+    "claude-sonnet-4-0",
+    "claude-opus-4-1",
+    "claude-opus-4-0",
+}
 
 # Thinking can only be switched off at high effort or below; pairing it with
 # xhigh or max is rejected outright. Above that line the planner has to let the
@@ -1019,6 +1025,18 @@ def main() -> int:
         help="Record without the detection overlay",
     )
     parser.add_argument(
+        "--figure", metavar="PATH", default=None,
+        help="Write the latency figure here; defaults to figures/<recording name>.png",
+    )
+    parser.add_argument(
+        "--no-figure", action="store_true",
+        help="Skip the latency figure",
+    )
+    parser.add_argument(
+        "--figure-interval-sec", type=float, default=10.0,
+        help="How often the figure thread redraws while the match runs (default: 10)",
+    )
+    parser.add_argument(
         "--stop-file", default=DEFAULT_STOP_FILE,
         help=f"Stop cleanly when this file appears (default: {DEFAULT_STOP_FILE})",
     )
@@ -1113,6 +1131,22 @@ def main() -> int:
             f"{' (raw)' if args.record_raw else ' with detection overlay'}"
         )
 
+    # Third thread, alongside gameplay and recording: it only draws, so the loop
+    # never pays for it. Named after the recording so a run's video and its
+    # latency chart sit under the same stem in two directories.
+    figure_recorder = None
+    if not args.no_figure:
+        from .figures import FigureRecorder, figure_path_for
+
+        figure_path = args.figure or figure_path_for(args.record)
+        figure_recorder = FigureRecorder(
+            figure_path,
+            interval_sec=args.figure_interval_sec,
+            title=f"{args.provider} / {model}" + (f", effort {effort}" if effort else ""),
+        )
+        figure_recorder.start()
+        print(f"[INFO] latency figure: {figure_path} (redrawn every {args.figure_interval_sec:g}s)")
+
     # A state file left by the previous run describes the previous match. Read
     # before the capture writes its first snapshot, it looks like a battle
     # already in progress — enough to report a match starting and then finishing
@@ -1127,6 +1161,7 @@ def main() -> int:
         planner = AnthropicPlanner(model, effort=args.effort or DEFAULT_ANTHROPIC_EFFORT)
     else:
         planner = OpenAIPlanner(model, effort=args.effort)
+    planner_api_errors = planner.transient_api_errors
     executor = MirrorActionExecutor()
     cycle_tracker = CycleTracker()
     tower_tracker = TowerHealthTracker()
@@ -1141,6 +1176,7 @@ def main() -> int:
     pending_action = None
     menu_attempt = 0
     next_menu_tap_ts = 0.0
+    next_waiting_report_ts = 0.0
     matches_finished = 0
     was_in_battle = False
     left_battle_ts = None
@@ -1179,6 +1215,8 @@ def main() -> int:
                 out_of_battle_streak = 0
                 if not was_in_battle:
                     print("[Match] started")
+                    if figure_recorder is not None:
+                        figure_recorder.record_event("match start")
                 was_in_battle = True
             else:
                 out_of_battle_streak += 1
@@ -1187,11 +1225,26 @@ def main() -> int:
                     left_battle_ts = time.time()
                     was_in_battle = False
                     print(f"[Match] finished ({matches_finished})")
+                    if figure_recorder is not None:
+                        figure_recorder.record_event(f"match end ({matches_finished})")
 
             if not in_battle:
                 if args.matches and matches_finished >= args.matches:
                     print(f"[INFO] stopping: played {matches_finished} match(es)")
                     break
+
+                # Say what the capture is seeing while nothing is happening.
+                # Waiting for a battle and failing to recognize the one on
+                # screen look identical from outside, and this branch used to
+                # be completely silent for however long that lasted.
+                now = time.time()
+                if now >= next_waiting_report_ts:
+                    screen = snapshot.get("screen") or {}
+                    print(
+                        f"[INFO] waiting: no battle detected (screen={screen.get('kind', 'other')}, "
+                        f"snapshot #{sequence})"
+                    )
+                    next_waiting_report_ts = now + WAITING_REPORT_SEC
 
                 # Never plan against a menu. The LLM has nothing to decide there,
                 # and every snapshot would be a paid call to be told so.
@@ -1265,9 +1318,26 @@ def main() -> int:
                     backoff_until = time.time() + 15.0
                     print("[WARN] OpenAI rate limited (429). Backing off for 15s.")
                     continue
+                # A rejected request is rejected every time. Retrying it spends
+                # the whole match printing the same 400, which is exactly what
+                # happened when a model turned out not to accept `temperature`.
+                if status is not None and 400 <= status < 500:
+                    print(f"[ERROR] OpenAI rejected the request ({status}): {e}")
+                    return 1
                 # Don't crash the bot on a single transient API error.
                 print(f"[WARN] OpenAI HTTP error ({status}): {e}. Idling one tick.")
                 backoff_until = time.time() + 2.0
+                continue
+            except planner_api_errors as e:
+                status = getattr(e, "status_code", None)
+                # A rejected request is rejected every time — retrying it just
+                # burns the match in silence, so say what the API said and stop.
+                if status is not None and 400 <= status < 500 and status != 429:
+                    print(f"[ERROR] {args.provider} rejected the request ({status}): {e}")
+                    return 1
+                wait = 15.0 if status == 429 else 2.0
+                print(f"[WARN] {args.provider} API error ({status}): {e}. Backing off {wait:g}s.")
+                backoff_until = time.time() + wait
                 continue
             except (ValueError, json.JSONDecodeError, requests.RequestException) as e:
                 print(f"[WARN] Planner error: {e}. Idling one tick.")
@@ -1305,6 +1375,16 @@ def main() -> int:
                     )
             latest["result"] = result
             print(f"[AI Action] Result: {format_ai_result(result)}")
+            if figure_recorder is not None:
+                figure_recorder.record_decision(
+                    capture_latency_ms=capture_latency_ms,
+                    api_latency_ms=api_latency_ms,
+                    action=decision.get("action", "idle"),
+                    card=result.get("card") or decision.get("card"),
+                    executed=result.get("status") == "executed",
+                    elixir=blended_elixir,
+                    usage=planner.last_api_debug.get("usage"),
+                )
             # Record action for LLM context (even idles, so the model knows).
             action_record = {
                 "action": decision.get("action", "idle"),
@@ -1345,6 +1425,15 @@ def main() -> int:
         print("\n[INFO] Shutting down...")
     finally:
         worker.stop()
+        if figure_recorder is not None:
+            figure_path = figure_recorder.stop()
+            if figure_path:
+                print(f"[INFO] latency figure saved: {figure_path}")
+            else:
+                # No file is not a drawing failure — it means not one decision
+                # completed, which is worth saying rather than leaving a
+                # missing file to be discovered later.
+                print("[INFO] no latency figure: no decision completed this run")
         if recorder is not None:
             path = recorder.stop()
             if path:

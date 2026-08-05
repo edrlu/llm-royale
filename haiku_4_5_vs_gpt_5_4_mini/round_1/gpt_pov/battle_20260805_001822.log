@@ -1,0 +1,1001 @@
+/Users/edrlu/repos/projects/llm-royale/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+[INFO] planner: openai / gpt-5.4-mini / effort unset (provider default)
+[INFO] recording to recordings/battle_20260805_001822.mp4 at 60fps, 632x1392 with detection overlay
+[INFO] latency figure: figures/battle_20260805_001822.png (redrawn every 10s)
+[capture] [INFO] Preset: fast - Balanced low-latency preset with both Clash detectors and MPS acceleration.
+[capture] [INFO] Clash filter: 19 classes allowed out of 155
+[capture] [INFO] Loading Clash Royale models: ['detector1_v0.7.13.pt', 'detector2_v0.7.13.pt']
+[capture] YOLOv8l summary (fused): 112 layers, 43,672,143 parameters, 0 gradients, 165.2 GFLOPs
+[capture] [INFO] Model layers fused (Conv+BN merge)
+[capture] [INFO] Model set to FP16 half precision on mps
+[capture] YOLOv8l summary (fused): 112 layers, 43,672,143 parameters, 0 gradients, 165.2 GFLOPs
+[capture] [INFO] Model layers fused (Conv+BN merge)
+[capture] [INFO] Model set to FP16 half precision on mps
+[capture] [INFO] Clash detector ready (2 model(s), device=mps, infer=832px, half=True, fuse=True)
+[capture] [INFO] iPhone Mirroring window 293585 native 632x1392 (backing scale 2.0x)
+[capture] [INFO] Output resolution: 376x832
+[capture] [INFO] Writing JSON snapshots to: /Users/edrlu/repos/projects/llm-royale/llm_clasher_state.json
+[capture] [INFO] Snapshot interval: 0.40s
+[capture] [INFO] Wrote snapshot #1 (13 detections, 1558.4ms total)
+[Match] started
+[Snapshot] Planning from snapshot #1
+[capture] [INFO] Wrote snapshot #2 (12 detections, 167.3ms total)
+[capture] [INFO] Wrote snapshot #3 (12 detections, 163.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1235.82, "input_bytes": 1151, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1073, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 36, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1109}}
+[Latency] Summary: {"capture_total_latency_ms": 1558.37, "api_latency_ms": 1235.82, "approx_decision_latency_ms": 2794.19, "decision_latency_sec_context": 3.04}
+[AI Action] Decision: play ice-golem at (0.50, 0.78)
+[capture] [INFO] Wrote snapshot #4 (12 detections, 231.9ms total)
+[AI Action] Result: executed ice-golem from slot 3 to (0.50, 0.78)
+[Snapshot] Planning from snapshot #4
+[capture] [INFO] Wrote snapshot #5 (13 detections, 354.6ms total)
+[capture] [INFO] Wrote snapshot #6 (13 detections, 156.6ms total)
+[capture] [INFO] Wrote snapshot #7 (13 detections, 144.1ms total)
+[capture] [INFO] Wrote snapshot #8 (13 detections, 142.4ms total)
+[capture] [INFO] Wrote snapshot #9 (13 detections, 145.6ms total)
+[capture] [INFO] Wrote snapshot #10 (13 detections, 130.1ms total)
+[capture] [INFO] Wrote snapshot #11 (14 detections, 148.1ms total)
+[capture] [INFO] Wrote snapshot #12 (13 detections, 148.8ms total)
+[capture] [INFO] Wrote snapshot #13 (15 detections, 187.0ms total)
+[capture] [INFO] Wrote snapshot #14 (15 detections, 130.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 5389.4, "input_bytes": 1208, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1095, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1124}}
+[Latency] Summary: {"capture_total_latency_ms": 231.85, "api_latency_ms": 5389.4, "approx_decision_latency_ms": 5621.25, "decision_latency_sec_context": 3.79}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 14, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": false, "current_hand": [{"slot": 1, "label": "the-log", "confidence": 0.8613, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 20.416}, {"slot": 2, "label": "musketeer", "confidence": 0.7623, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 24.6388}, {"slot": 3, "label": "ice-golem", "confidence": 0.5779, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 12.421}, {"slot": 4, "label": "ice-spirit", "confidence": 0.4582, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 7.6773}]}
+[Snapshot] Planning from snapshot #14
+[capture] [INFO] Wrote snapshot #15 (15 detections, 177.4ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 983.38, "input_bytes": 1238, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1105, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1134}}
+[Latency] Summary: {"capture_total_latency_ms": 130.86, "api_latency_ms": 983.38, "approx_decision_latency_ms": 1114.24, "decision_latency_sec_context": 2.92}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[INFO] waiting: no battle detected (screen=other, snapshot #15)
+[capture] [INFO] Wrote snapshot #16 (14 detections, 183.7ms total)
+[capture] [INFO] Wrote snapshot #17 (13 detections, 137.9ms total)
+[capture] [INFO] Wrote snapshot #18 (15 detections, 149.4ms total)
+[capture] [INFO] Wrote snapshot #19 (14 detections, 166.1ms total)
+[capture] [INFO] Wrote snapshot #20 (14 detections, 138.8ms total)
+[capture] [INFO] Wrote snapshot #21 (14 detections, 141.7ms total)
+[capture] [INFO] Wrote snapshot #22 (14 detections, 136.9ms total)
+[capture] [INFO] Wrote snapshot #23 (15 detections, 126.6ms total)
+[Snapshot] Planning from snapshot #23
+[capture] [INFO] Wrote snapshot #24 (15 detections, 133.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 846.05, "input_bytes": 1567, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1223, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1258}}
+[Latency] Summary: {"capture_total_latency_ms": 126.56, "api_latency_ms": 846.05, "approx_decision_latency_ms": 972.61, "decision_latency_sec_context": 2.49}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[capture] [INFO] Wrote snapshot #25 (14 detections, 159.3ms total)
+[Snapshot] Planning from snapshot #25
+[capture] [INFO] Wrote snapshot #26 (15 detections, 341.4ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 983.04, "input_bytes": 1308, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1131, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 36, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1167}}
+[Latency] Summary: {"capture_total_latency_ms": 159.31, "api_latency_ms": 983.04, "approx_decision_latency_ms": 1142.35, "decision_latency_sec_context": 2.3}
+[AI Action] Decision: play musketeer at (0.50, 0.72)
+[capture] [INFO] Wrote snapshot #27 (14 detections, 339.2ms total)
+[AI Action] Result: executed musketeer from slot 2 to (0.50, 0.72)
+[INFO] waiting: no battle detected (screen=other, snapshot #27)
+[capture] [INFO] Wrote snapshot #28 (20 detections, 395.9ms total)
+[capture] [INFO] Wrote snapshot #29 (17 detections, 371.0ms total)
+[Snapshot] Planning from snapshot #29
+[capture] [INFO] Wrote snapshot #30 (16 detections, 150.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 601.62, "input_bytes": 1291, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1126, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1155}}
+[Latency] Summary: {"capture_total_latency_ms": 370.96, "api_latency_ms": 601.62, "approx_decision_latency_ms": 972.58, "decision_latency_sec_context": 2.29}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #30
+[capture] [INFO] Wrote snapshot #31 (16 detections, 145.2ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 966.27, "input_bytes": 1337, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1139, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 36, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1175}}
+[Latency] Summary: {"capture_total_latency_ms": 150.89, "api_latency_ms": 966.27, "approx_decision_latency_ms": 1117.16, "decision_latency_sec_context": 1.97}
+[AI Action] Decision: play ice-golem at (0.50, 0.55)
+[capture] [INFO] Wrote snapshot #32 (14 detections, 350.1ms total)
+[AI Action] Result: executed ice-golem from slot 3 to (0.50, 0.55)
+[Snapshot] Planning from snapshot #32
+[capture] [INFO] Wrote snapshot #33 (16 detections, 148.1ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 864.11, "input_bytes": 1367, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1147, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1182}}
+[Latency] Summary: {"capture_total_latency_ms": 350.09, "api_latency_ms": 864.11, "approx_decision_latency_ms": 1214.2, "decision_latency_sec_context": 2.08}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #33
+[capture] [INFO] Wrote snapshot #34 (18 detections, 365.6ms total)
+[capture] [INFO] Wrote snapshot #35 (14 detections, 314.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1189.86, "input_bytes": 1319, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1132, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1161}}
+[Latency] Summary: {"capture_total_latency_ms": 148.11, "api_latency_ms": 1189.86, "approx_decision_latency_ms": 1337.97, "decision_latency_sec_context": 1.88}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 35, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "the-log", "confidence": 0.8731, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 22.5209}, {"slot": 2, "label": "skeleton", "confidence": 0.674, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 19.4515}, {"slot": 3, "label": "hog-rider", "confidence": 0.7315, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 12.6642}, {"slot": 4, "label": "ice-spirit", "confidence": 0.4572, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 7.5775}]}
+[Snapshot] Planning from snapshot #35
+[capture] [INFO] Wrote snapshot #36 (16 detections, 182.9ms total)
+[capture] [INFO] Wrote snapshot #37 (18 detections, 349.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1257.4, "input_bytes": 1308, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1124, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 37, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1161}}
+[Latency] Summary: {"capture_total_latency_ms": 314.3, "api_latency_ms": 1257.4, "approx_decision_latency_ms": 1571.7, "decision_latency_sec_context": 1.53}
+[AI Action] Decision: play hog-rider at (0.22, 0.43)
+[capture] [INFO] Wrote snapshot #38 (16 detections, 313.0ms total)
+[AI Action] Result: executed hog-rider from slot 3 to (0.22, 0.43)
+[Snapshot] Planning from snapshot #38
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 722.32, "input_bytes": 1547, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1209, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1244}}
+[Latency] Summary: {"capture_total_latency_ms": 313.0, "api_latency_ms": 722.32, "approx_decision_latency_ms": 1035.32, "decision_latency_sec_context": 1.49}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[capture] [INFO] Wrote snapshot #39 (19 detections, 380.9ms total)
+[INFO] waiting: no battle detected (screen=other, snapshot #39)
+[capture] [INFO] Wrote snapshot #40 (18 detections, 376.1ms total)
+[Snapshot] Planning from snapshot #40
+[capture] [INFO] Wrote snapshot #41 (19 detections, 423.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1287.52, "input_bytes": 1469, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1182, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1224}}
+[Latency] Summary: {"capture_total_latency_ms": 376.07, "api_latency_ms": 1287.52, "approx_decision_latency_ms": 1663.59, "decision_latency_sec_context": 1.61}
+[AI Action] Decision: play ice-spirit at (0.50, 0.78)
+[capture] [INFO] Wrote snapshot #42 (19 detections, 477.9ms total)
+[AI Action] Result: executed ice-spirit from slot 4 to (0.50, 0.78)
+[Snapshot] Planning from snapshot #42
+[capture] [INFO] Wrote snapshot #43 (18 detections, 377.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 708.7, "input_bytes": 2057, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1384, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1419}}
+[Latency] Summary: {"capture_total_latency_ms": 477.95, "api_latency_ms": 708.7, "approx_decision_latency_ms": 1186.65, "decision_latency_sec_context": 1.68}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #43
+[capture] [INFO] Wrote snapshot #44 (20 detections, 344.7ms total)
+[capture] [INFO] Wrote snapshot #45 (20 detections, 362.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1444.41, "input_bytes": 1798, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1302, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1337}}
+[Latency] Summary: {"capture_total_latency_ms": 376.95, "api_latency_ms": 1444.41, "approx_decision_latency_ms": 1821.36, "decision_latency_sec_context": 1.68}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 45, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": false, "current_hand": [{"slot": 1, "label": "the-log", "confidence": 0.8728, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 22.5389}, {"slot": 2, "label": "skeleton", "confidence": 0.7405, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 20.6265}, {"slot": 3, "label": "cannon", "confidence": 0.4261, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 6.0836}, {"slot": 4, "label": "ice-spirit", "confidence": 0.3849, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 5.4939}]}
+[Snapshot] Planning from snapshot #45
+[capture] [INFO] Wrote snapshot #46 (19 detections, 327.6ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1064.07, "input_bytes": 1768, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1295, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 41, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1336}}
+[Latency] Summary: {"capture_total_latency_ms": 362.79, "api_latency_ms": 1064.07, "approx_decision_latency_ms": 1426.86, "decision_latency_sec_context": 1.68}
+[AI Action] Decision: play skeleton at (0.22, 0.62)
+[capture] [INFO] Wrote snapshot #47 (20 detections, 437.7ms total)
+[AI Action] Result: executed skeleton from slot 2 to (0.22, 0.62)
+[Snapshot] Planning from snapshot #47
+[capture] [INFO] Wrote snapshot #48 (20 detections, 450.1ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1025.36, "input_bytes": 1784, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1297, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 41, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1338}}
+[Latency] Summary: {"capture_total_latency_ms": 437.69, "api_latency_ms": 1025.36, "approx_decision_latency_ms": 1463.05, "decision_latency_sec_context": 1.78}
+[AI Action] Decision: play cannon at (0.78, 0.62)
+[AI Action] Result: executed cannon from slot 3 to (0.78, 0.62)
+[Snapshot] Planning from snapshot #48
+[capture] [INFO] Wrote snapshot #49 (25 detections, 430.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 760.57, "input_bytes": 1485, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1191, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1226}}
+[Latency] Summary: {"capture_total_latency_ms": 450.14, "api_latency_ms": 760.57, "approx_decision_latency_ms": 1210.71, "decision_latency_sec_context": 1.73}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #49
+[capture] [INFO] Wrote snapshot #50 (29 detections, 374.0ms total)
+[capture] [INFO] Wrote snapshot #51 (27 detections, 407.2ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 997.3, "input_bytes": 1856, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1313, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1355}}
+[Latency] Summary: {"capture_total_latency_ms": 430.81, "api_latency_ms": 997.3, "approx_decision_latency_ms": 1428.11, "decision_latency_sec_context": 1.68}
+[AI Action] Decision: play ice-spirit at (0.78, 0.52)
+[AI Action] Result: executed ice-spirit from slot 4 to (0.78, 0.52)
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 51, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d22", "label": "ice-spirit", "distance": 53.91, "center": {"x": 291.0, "y": 486.5}, "confidence": 0.4925}], "slot_changed": false}
+[Snapshot] Planning from snapshot #51
+[capture] [INFO] Wrote snapshot #52 (27 detections, 388.7ms total)
+[capture] [INFO] Wrote snapshot #53 (32 detections, 379.4ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 988.5, "input_bytes": 1829, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1305, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1347}}
+[Latency] Summary: {"capture_total_latency_ms": 407.17, "api_latency_ms": 988.5, "approx_decision_latency_ms": 1395.67, "decision_latency_sec_context": 1.69}
+[AI Action] Decision: play ice-spirit at (0.50, 0.74)
+[AI Action] Result: executed ice-spirit from slot 4 to (0.50, 0.74)
+[Snapshot] Planning from snapshot #53
+[capture] [INFO] Wrote snapshot #54 (33 detections, 368.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 730.92, "input_bytes": 2300, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1472, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1501}}
+[Latency] Summary: {"capture_total_latency_ms": 379.42, "api_latency_ms": 730.92, "approx_decision_latency_ms": 1110.34, "decision_latency_sec_context": 1.59}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #54
+[capture] [INFO] Wrote snapshot #55 (27 detections, 366.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 658.06, "input_bytes": 2288, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1480, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1509}}
+[Latency] Summary: {"capture_total_latency_ms": 368.53, "api_latency_ms": 658.06, "approx_decision_latency_ms": 1026.59, "decision_latency_sec_context": 1.58}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 55, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "the-log", "confidence": 0.3606, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 7.266}, {"slot": 2, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 3, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #55
+[capture] [INFO] Wrote snapshot #56 (28 detections, 486.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 849.53, "input_bytes": 2107, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1409, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1444}}
+[Latency] Summary: {"capture_total_latency_ms": 366.67, "api_latency_ms": 849.53, "approx_decision_latency_ms": 1216.2, "decision_latency_sec_context": 1.5}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #56
+[capture] [INFO] Wrote snapshot #57 (19 detections, 342.6ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 889.09, "input_bytes": 2271, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1465, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1500}}
+[Latency] Summary: {"capture_total_latency_ms": 486.28, "api_latency_ms": 889.09, "approx_decision_latency_ms": 1375.37, "decision_latency_sec_context": 1.6}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #57
+[capture] [INFO] Wrote snapshot #58 (21 detections, 331.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 682.36, "input_bytes": 1241, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1103, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1132}}
+[Latency] Summary: {"capture_total_latency_ms": 342.57, "api_latency_ms": 682.36, "approx_decision_latency_ms": 1024.93, "decision_latency_sec_context": 1.41}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #58
+[capture] [INFO] Wrote snapshot #59 (22 detections, 373.2ms total)
+[capture] [INFO] Wrote snapshot #60 (21 detections, 303.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1361.93, "input_bytes": 1450, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1180, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1215}}
+[Latency] Summary: {"capture_total_latency_ms": 331.32, "api_latency_ms": 1361.93, "approx_decision_latency_ms": 1693.25, "decision_latency_sec_context": 1.48}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #60
+[capture] [INFO] Wrote snapshot #61 (17 detections, 370.4ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1052.35, "input_bytes": 1439, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1176, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1211}}
+[Latency] Summary: {"capture_total_latency_ms": 303.52, "api_latency_ms": 1052.35, "approx_decision_latency_ms": 1355.87, "decision_latency_sec_context": 1.46}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #61
+[capture] [INFO] Wrote snapshot #62 (21 detections, 383.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 682.16, "input_bytes": 1239, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1101, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1130}}
+[Latency] Summary: {"capture_total_latency_ms": 370.42, "api_latency_ms": 682.16, "approx_decision_latency_ms": 1052.58, "decision_latency_sec_context": 1.48}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #62
+[capture] [INFO] Wrote snapshot #63 (18 detections, 340.9ms total)
+[capture] [INFO] Wrote snapshot #64 (18 detections, 366.9ms total)
+[capture] [INFO] Wrote snapshot #65 (16 detections, 186.6ms total)
+[capture] [INFO] Wrote snapshot #66 (18 detections, 331.5ms total)
+[capture] [INFO] Wrote snapshot #67 (17 detections, 312.1ms total)
+[capture] [INFO] Wrote snapshot #68 (16 detections, 158.2ms total)
+[capture] [INFO] Wrote snapshot #69 (14 detections, 311.6ms total)
+[capture] [INFO] Wrote snapshot #70 (15 detections, 397.3ms total)
+[capture] [INFO] Wrote snapshot #71 (15 detections, 346.4ms total)
+[capture] [INFO] Wrote snapshot #72 (15 detections, 351.8ms total)
+[capture] [INFO] Wrote snapshot #73 (16 detections, 318.5ms total)
+[capture] [INFO] Wrote snapshot #74 (15 detections, 337.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 7854.47, "input_bytes": 1368, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1145, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1174}}
+[Latency] Summary: {"capture_total_latency_ms": 383.45, "api_latency_ms": 7854.47, "approx_decision_latency_ms": 8237.92, "decision_latency_sec_context": 2.39}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #74
+[capture] [INFO] Wrote snapshot #75 (16 detections, 209.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 766.23, "input_bytes": 1450, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1174, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1209}}
+[Latency] Summary: {"capture_total_latency_ms": 337.0, "api_latency_ms": 766.23, "approx_decision_latency_ms": 1103.23, "decision_latency_sec_context": 2.35}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #75
+[capture] [INFO] Wrote snapshot #76 (14 detections, 126.2ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 789.6, "input_bytes": 1447, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1173, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1202}}
+[Latency] Summary: {"capture_total_latency_ms": 208.99, "api_latency_ms": 789.6, "approx_decision_latency_ms": 998.59, "decision_latency_sec_context": 2.22}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #76
+[capture] [INFO] Wrote snapshot #77 (15 detections, 332.6ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 776.17, "input_bytes": 1444, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1173, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1202}}
+[Latency] Summary: {"capture_total_latency_ms": 126.18, "api_latency_ms": 776.17, "approx_decision_latency_ms": 902.35, "decision_latency_sec_context": 2.12}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #77
+[capture] [INFO] Wrote snapshot #78 (15 detections, 306.6ms total)
+[capture] [INFO] Wrote snapshot #79 (15 detections, 153.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 763.66, "input_bytes": 1447, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1173, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1208}}
+[Latency] Summary: {"capture_total_latency_ms": 332.58, "api_latency_ms": 763.66, "approx_decision_latency_ms": 1096.24, "decision_latency_sec_context": 2.34}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #79
+[capture] [INFO] Wrote snapshot #80 (13 detections, 352.7ms total)
+[capture] [INFO] Wrote snapshot #81 (14 detections, 214.6ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1372.56, "input_bytes": 1447, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1173, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1208}}
+[Latency] Summary: {"capture_total_latency_ms": 153.91, "api_latency_ms": 1372.56, "approx_decision_latency_ms": 1526.47, "decision_latency_sec_context": 2.16}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #81
+[capture] [INFO] Wrote snapshot #82 (14 detections, 137.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 880.82, "input_bytes": 1447, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1173, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1208}}
+[Latency] Summary: {"capture_total_latency_ms": 214.57, "api_latency_ms": 880.82, "approx_decision_latency_ms": 1095.39, "decision_latency_sec_context": 2.2}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #82
+[capture] [INFO] Wrote snapshot #83 (14 detections, 159.0ms total)
+[capture] [INFO] Wrote snapshot #84 (14 detections, 148.1ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 919.25, "input_bytes": 1286, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1119, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 36, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1155}}
+[Latency] Summary: {"capture_total_latency_ms": 136.95, "api_latency_ms": 919.25, "approx_decision_latency_ms": 1056.2, "decision_latency_sec_context": 2.15}
+[AI Action] Decision: play ice-golem at (0.50, 0.74)
+[capture] [INFO] Wrote snapshot #85 (13 detections, 144.3ms total)
+[AI Action] Result: executed ice-golem from slot 4 to (0.50, 0.74)
+[Snapshot] Planning from snapshot #85
+[capture] [INFO] Wrote snapshot #86 (19 detections, 338.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 627.72, "input_bytes": 1299, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1123, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1152}}
+[Latency] Summary: {"capture_total_latency_ms": 144.3, "api_latency_ms": 627.72, "approx_decision_latency_ms": 772.02, "decision_latency_sec_context": 1.26}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 86, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "the-log", "confidence": 0.8595, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 20.3676}, {"slot": 2, "label": "fireball", "confidence": 0.7621, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 14.5805}, {"slot": 3, "label": "musketeer", "confidence": 0.7539, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 25.2131}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #86
+[capture] [INFO] Wrote snapshot #87 (20 detections, 395.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 710.66, "input_bytes": 1459, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1180, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1215}}
+[Latency] Summary: {"capture_total_latency_ms": 338.32, "api_latency_ms": 710.66, "approx_decision_latency_ms": 1048.98, "decision_latency_sec_context": 1.44}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #87
+[capture] [INFO] Wrote snapshot #88 (17 detections, 348.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 866.2, "input_bytes": 1476, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1186, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 41, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1227}}
+[Latency] Summary: {"capture_total_latency_ms": 395.0, "api_latency_ms": 866.2, "approx_decision_latency_ms": 1261.2, "decision_latency_sec_context": 1.51}
+[AI Action] Decision: play the-log at (0.78, 0.58)
+[capture] [INFO] Wrote snapshot #89 (16 detections, 208.5ms total)
+[AI Action] Result: executed the-log from slot 1 to (0.78, 0.58)
+[Snapshot] Planning from snapshot #89
+[capture] [INFO] Wrote snapshot #90 (19 detections, 314.2ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 603.93, "input_bytes": 1534, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1202, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1237}}
+[Latency] Summary: {"capture_total_latency_ms": 208.55, "api_latency_ms": 603.93, "approx_decision_latency_ms": 812.48, "decision_latency_sec_context": 1.3}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 90, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d10", "label": "the-log", "distance": 5.12, "center": {"x": 292.5, "y": 477.5}, "confidence": 0.6783}], "slot_changed": true}
+[Snapshot] Planning from snapshot #90
+[capture] [INFO] Wrote snapshot #91 (16 detections, 193.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 964.58, "input_bytes": 1385, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1157, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 37, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1194}}
+[Latency] Summary: {"capture_total_latency_ms": 314.18, "api_latency_ms": 964.58, "approx_decision_latency_ms": 1278.76, "decision_latency_sec_context": 1.43}
+[AI Action] Decision: play hog-rider at (0.78, 0.43)
+[capture] [INFO] Wrote snapshot #92 (15 detections, 315.9ms total)
+[AI Action] Result: executed hog-rider from slot 4 to (0.78, 0.43)
+[Snapshot] Planning from snapshot #92
+[capture] [INFO] Wrote snapshot #93 (19 detections, 405.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 683.7, "input_bytes": 1322, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1128, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 36, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1164}}
+[Latency] Summary: {"capture_total_latency_ms": 315.91, "api_latency_ms": 683.7, "approx_decision_latency_ms": 999.61, "decision_latency_sec_context": 1.35}
+[AI Action] Decision: play musketeer at (0.50, 0.62)
+[AI Action] Result: executed musketeer from slot 3 to (0.50, 0.62)
+[INFO] waiting: no battle detected (screen=other, snapshot #93)
+[capture] [INFO] Wrote snapshot #94 (19 detections, 360.4ms total)
+[Snapshot] Planning from snapshot #94
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 644.93, "input_bytes": 1552, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1209, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1238}}
+[Latency] Summary: {"capture_total_latency_ms": 360.41, "api_latency_ms": 644.93, "approx_decision_latency_ms": 1005.34, "decision_latency_sec_context": 1.36}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[capture] [INFO] Wrote snapshot #95 (20 detections, 371.8ms total)
+[Snapshot] Planning from snapshot #95
+[capture] [INFO] Wrote snapshot #96 (14 detections, 435.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 910.1, "input_bytes": 1481, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1182, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 37, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1219}}
+[Latency] Summary: {"capture_total_latency_ms": 371.79, "api_latency_ms": 910.1, "approx_decision_latency_ms": 1281.89, "decision_latency_sec_context": 1.37}
+[AI Action] Decision: play skeleton at (0.35, 0.70)
+[AI Action] Result: executed skeleton from slot 1 to (0.35, 0.70)
+[Snapshot] Planning from snapshot #96
+[capture] [INFO] Wrote snapshot #97 (15 detections, 403.1ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 766.79, "input_bytes": 1200, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1082, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1111}}
+[Latency] Summary: {"capture_total_latency_ms": 435.81, "api_latency_ms": 766.79, "approx_decision_latency_ms": 1202.6, "decision_latency_sec_context": 1.45}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #97
+[capture] [INFO] Wrote snapshot #98 (17 detections, 376.6ms total)
+[capture] [INFO] Wrote snapshot #99 (19 detections, 312.6ms total)
+[capture] [INFO] Wrote snapshot #100 (18 detections, 331.1ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1901.66, "input_bytes": 1698, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1261, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1296}}
+[Latency] Summary: {"capture_total_latency_ms": 403.13, "api_latency_ms": 1901.66, "approx_decision_latency_ms": 2304.79, "decision_latency_sec_context": 1.57}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 100, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d18", "label": "skeleton", "distance": 14.32, "center": {"x": 118.5, "y": 574.0}, "confidence": 0.2339}], "slot_changed": true}
+[Snapshot] Planning from snapshot #100
+[capture] [INFO] Wrote snapshot #101 (19 detections, 308.6ms total)
+[capture] [INFO] Wrote snapshot #102 (16 detections, 373.6ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1338.82, "input_bytes": 1682, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1257, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1299}}
+[Latency] Summary: {"capture_total_latency_ms": 331.09, "api_latency_ms": 1338.82, "approx_decision_latency_ms": 1669.91, "decision_latency_sec_context": 1.56}
+[AI Action] Decision: play musketeer at (0.62, 0.62)
+[capture] [INFO] Wrote snapshot #103 (16 detections, 374.4ms total)
+[AI Action] Result: executed musketeer from slot 3 to (0.62, 0.62)
+[Snapshot] Planning from snapshot #103
+[capture] [INFO] Wrote snapshot #104 (14 detections, 399.8ms total)
+[capture] [INFO] Wrote snapshot #105 (18 detections, 171.4ms total)
+[capture] [INFO] Wrote snapshot #106 (19 detections, 305.3ms total)
+[capture] [INFO] Wrote snapshot #107 (18 detections, 357.9ms total)
+[capture] [INFO] Wrote snapshot #108 (17 detections, 380.1ms total)
+[capture] [INFO] Wrote snapshot #109 (18 detections, 309.4ms total)
+[capture] [INFO] Wrote snapshot #110 (20 detections, 306.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 5412.63, "input_bytes": 1487, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1189, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1224}}
+[Latency] Summary: {"capture_total_latency_ms": 374.45, "api_latency_ms": 5412.63, "approx_decision_latency_ms": 5787.08, "decision_latency_sec_context": 2.2}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 110, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d18", "label": "musketeer", "distance": 60.35, "center": {"x": 278.0, "y": 475.5}, "confidence": 0.3033}], "slot_changed": true}
+[Snapshot] Planning from snapshot #110
+[capture] [INFO] Wrote snapshot #111 (19 detections, 337.5ms total)
+[capture] [INFO] Wrote snapshot #112 (20 detections, 387.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1224.53, "input_bytes": 1719, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1279, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1321}}
+[Latency] Summary: {"capture_total_latency_ms": 306.48, "api_latency_ms": 1224.53, "approx_decision_latency_ms": 1531.01, "decision_latency_sec_context": 2.17}
+[AI Action] Decision: play ice-spirit at (0.22, 0.58)
+[AI Action] Result: executed ice-spirit from slot 1 to (0.22, 0.58)
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 112, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d20", "label": "ice-spirit", "distance": 78.45, "center": {"x": 94.5, "y": 405.0}, "confidence": 0.2437}], "slot_changed": false}
+[Snapshot] Planning from snapshot #112
+[capture] [INFO] Wrote snapshot #113 (22 detections, 347.4ms total)
+[capture] [INFO] Wrote snapshot #114 (26 detections, 308.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1214.38, "input_bytes": 1801, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1305, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 41, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1346}}
+[Latency] Summary: {"capture_total_latency_ms": 387.66, "api_latency_ms": 1214.38, "approx_decision_latency_ms": 1602.04, "decision_latency_sec_context": 2.31}
+[AI Action] Decision: play cannon at (0.50, 0.58)
+[capture] [INFO] Wrote snapshot #115 (28 detections, 343.0ms total)
+[AI Action] Result: executed cannon from slot 4 to (0.50, 0.58)
+[Snapshot] Planning from snapshot #115
+[capture] [INFO] Wrote snapshot #116 (27 detections, 345.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1063.83, "input_bytes": 2339, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1498, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1527}}
+[Latency] Summary: {"capture_total_latency_ms": 342.96, "api_latency_ms": 1063.83, "approx_decision_latency_ms": 1406.79, "decision_latency_sec_context": 2.32}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 116, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": "the-log", "confidence": 0.8656, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 20.7605}, {"slot": 2, "label": "fireball", "confidence": 0.4753, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 7.1128}, {"slot": 3, "label": "ice-golem", "confidence": 0.591, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 11.7356}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #116
+[capture] [INFO] Wrote snapshot #117 (24 detections, 355.9ms total)
+[capture] [INFO] Wrote snapshot #118 (20 detections, 382.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1115.95, "input_bytes": 2032, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1385, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 41, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1426}}
+[Latency] Summary: {"capture_total_latency_ms": 345.75, "api_latency_ms": 1115.95, "approx_decision_latency_ms": 1461.7, "decision_latency_sec_context": 2.35}
+[AI Action] Decision: play the-log at (0.22, 0.50)
+[AI Action] Result: executed the-log from slot 1 to (0.22, 0.50)
+[Snapshot] Planning from snapshot #118
+[capture] [INFO] Wrote snapshot #119 (20 detections, 415.6ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 625.63, "input_bytes": 1436, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1178, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1207}}
+[Latency] Summary: {"capture_total_latency_ms": 381.95, "api_latency_ms": 625.63, "approx_decision_latency_ms": 1007.58, "decision_latency_sec_context": 2.37}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #119
+[capture] [INFO] Wrote snapshot #120 (18 detections, 384.4ms total)
+[capture] [INFO] Wrote snapshot #121 (23 detections, 153.9ms total)
+[capture] [INFO] Wrote snapshot #122 (21 detections, 321.1ms total)
+[capture] [INFO] Wrote snapshot #123 (20 detections, 199.2ms total)
+[capture] [INFO] Wrote snapshot #124 (24 detections, 331.6ms total)
+[capture] [INFO] Wrote snapshot #125 (21 detections, 301.3ms total)
+[capture] [INFO] Wrote snapshot #126 (19 detections, 377.9ms total)
+[capture] [INFO] Wrote snapshot #127 (15 detections, 408.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 5527.04, "input_bytes": 1409, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1172, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1201}}
+[Latency] Summary: {"capture_total_latency_ms": 415.63, "api_latency_ms": 5527.04, "approx_decision_latency_ms": 5942.67, "decision_latency_sec_context": 2.86}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 127, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": false, "current_hand": [{"slot": 1, "label": "the-log", "confidence": 0.6545, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 11.4742}, {"slot": 2, "label": "fireball", "confidence": 0.5611, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 8.2116}, {"slot": 3, "label": "ice-golem", "confidence": 0.5156, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 9.7065}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #127
+[capture] [INFO] Wrote snapshot #128 (15 detections, 357.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 715.22, "input_bytes": 1219, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1091, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1120}}
+[Latency] Summary: {"capture_total_latency_ms": 408.8, "api_latency_ms": 715.22, "approx_decision_latency_ms": 1124.02, "decision_latency_sec_context": 2.77}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #128
+[capture] [INFO] Wrote snapshot #129 (17 detections, 170.4ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 772.17, "input_bytes": 1435, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1167, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1202}}
+[Latency] Summary: {"capture_total_latency_ms": 357.77, "api_latency_ms": 772.17, "approx_decision_latency_ms": 1129.94, "decision_latency_sec_context": 2.14}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #129
+[capture] [INFO] Wrote snapshot #130 (12 detections, 334.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 834.19, "input_bytes": 1451, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1174, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1209}}
+[Latency] Summary: {"capture_total_latency_ms": 170.42, "api_latency_ms": 834.19, "approx_decision_latency_ms": 1004.61, "decision_latency_sec_context": 1.9}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #130
+[capture] [INFO] Wrote snapshot #131 (14 detections, 349.2ms total)
+[capture] [INFO] Wrote snapshot #132 (18 detections, 516.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1095.35, "input_bytes": 1244, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1100, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 36, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1136}}
+[Latency] Summary: {"capture_total_latency_ms": 334.85, "api_latency_ms": 1095.35, "approx_decision_latency_ms": 1430.2, "decision_latency_sec_context": 2.05}
+[AI Action] Decision: play hog-rider at (0.22, 0.50)
+[AI Action] Result: executed hog-rider from slot 4 to (0.22, 0.50)
+[Snapshot] Planning from snapshot #132
+[capture] [INFO] Wrote snapshot #133 (16 detections, 372.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 679.55, "input_bytes": 1305, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1124, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1153}}
+[Latency] Summary: {"capture_total_latency_ms": 516.68, "api_latency_ms": 679.55, "approx_decision_latency_ms": 1196.23, "decision_latency_sec_context": 2.19}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #133
+[capture] [INFO] Wrote snapshot #134 (12 detections, 422.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1008.1, "input_bytes": 1316, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1126, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 36, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1162}}
+[Latency] Summary: {"capture_total_latency_ms": 372.85, "api_latency_ms": 1008.1, "approx_decision_latency_ms": 1380.95, "decision_latency_sec_context": 2.03}
+[AI Action] Decision: play ice-golem at (0.50, 0.72)
+[capture] [INFO] Wrote snapshot #135 (10 detections, 430.8ms total)
+[AI Action] Result: executed ice-golem from slot 3 to (0.50, 0.72)
+[Snapshot] Planning from snapshot #135
+[capture] [INFO] Wrote snapshot #136 (10 detections, 429.6ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 844.69, "input_bytes": 1152, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1069, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1098}}
+[Latency] Summary: {"capture_total_latency_ms": 430.77, "api_latency_ms": 844.69, "approx_decision_latency_ms": 1275.46, "decision_latency_sec_context": 2.12}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #136
+[capture] [INFO] Wrote snapshot #137 (10 detections, 329.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 686.39, "input_bytes": 1138, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1065, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1100}}
+[Latency] Summary: {"capture_total_latency_ms": 429.62, "api_latency_ms": 686.39, "approx_decision_latency_ms": 1116.01, "decision_latency_sec_context": 1.51}
+[AI Action] Decision: play skeleton at (0.50, 0.62)
+[capture] [INFO] Wrote snapshot #138 (11 detections, 384.1ms total)
+[AI Action] Result: executed skeleton from slot 4 to (0.50, 0.62)
+[Snapshot] Planning from snapshot #138
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 603.6, "input_bytes": 1197, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1082, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1111}}
+[Latency] Summary: {"capture_total_latency_ms": 384.09, "api_latency_ms": 603.6, "approx_decision_latency_ms": 987.69, "decision_latency_sec_context": 1.45}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[capture] [INFO] Wrote snapshot #139 (15 detections, 410.3ms total)
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 139, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d9", "label": "skeleton", "distance": 13.49, "center": {"x": 176.0, "y": 522.0}, "confidence": 0.6163}], "slot_changed": true}
+[Snapshot] Planning from snapshot #139
+[capture] [INFO] Wrote snapshot #140 (14 detections, 524.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 722.16, "input_bytes": 1314, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1127, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1156}}
+[Latency] Summary: {"capture_total_latency_ms": 410.3, "api_latency_ms": 722.16, "approx_decision_latency_ms": 1132.46, "decision_latency_sec_context": 1.47}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #140
+[capture] [INFO] Wrote snapshot #141 (11 detections, 326.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 912.61, "input_bytes": 1754, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1275, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1310}}
+[Latency] Summary: {"capture_total_latency_ms": 524.04, "api_latency_ms": 912.61, "approx_decision_latency_ms": 1436.65, "decision_latency_sec_context": 1.59}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #141
+[capture] [INFO] Wrote snapshot #142 (15 detections, 443.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1138.54, "input_bytes": 1329, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1134, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1163}}
+[Latency] Summary: {"capture_total_latency_ms": 326.82, "api_latency_ms": 1138.54, "approx_decision_latency_ms": 1465.36, "decision_latency_sec_context": 1.4}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #142
+[capture] [INFO] Wrote snapshot #143 (16 detections, 372.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 639.91, "input_bytes": 1780, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1285, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1314}}
+[Latency] Summary: {"capture_total_latency_ms": 443.54, "api_latency_ms": 639.91, "approx_decision_latency_ms": 1083.45, "decision_latency_sec_context": 1.51}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #143
+[capture] [INFO] Wrote snapshot #144 (13 detections, 394.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1092.7, "input_bytes": 1820, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1299, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1334}}
+[Latency] Summary: {"capture_total_latency_ms": 372.53, "api_latency_ms": 1092.7, "approx_decision_latency_ms": 1465.23, "decision_latency_sec_context": 1.45}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #144
+[capture] [INFO] Wrote snapshot #145 (14 detections, 417.3ms total)
+[capture] [INFO] Wrote snapshot #146 (21 detections, 349.2ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1074.84, "input_bytes": 1399, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1157, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 41, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1198}}
+[Latency] Summary: {"capture_total_latency_ms": 394.01, "api_latency_ms": 1074.84, "approx_decision_latency_ms": 1468.85, "decision_latency_sec_context": 1.5}
+[AI Action] Decision: play the-log at (0.78, 0.57)
+[capture] [INFO] Wrote snapshot #147 (21 detections, 176.4ms total)
+[AI Action] Result: executed the-log from slot 1 to (0.78, 0.57)
+[Snapshot] Planning from snapshot #147
+[capture] [INFO] Wrote snapshot #148 (19 detections, 328.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 826.19, "input_bytes": 2313, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1471, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1500}}
+[Latency] Summary: {"capture_total_latency_ms": 176.44, "api_latency_ms": 826.19, "approx_decision_latency_ms": 1002.63, "decision_latency_sec_context": 1.3}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 148, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 2, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 3, "label": "the-log", "confidence": 0.409, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 8.5796}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #148
+[capture] [INFO] Wrote snapshot #149 (17 detections, 378.1ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 993.88, "input_bytes": 1895, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1326, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1355}}
+[Latency] Summary: {"capture_total_latency_ms": 328.67, "api_latency_ms": 993.88, "approx_decision_latency_ms": 1322.55, "decision_latency_sec_context": 1.5}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #149
+[capture] [INFO] Wrote snapshot #150 (16 detections, 332.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 665.94, "input_bytes": 1806, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1303, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1332}}
+[Latency] Summary: {"capture_total_latency_ms": 378.09, "api_latency_ms": 665.94, "approx_decision_latency_ms": 1044.03, "decision_latency_sec_context": 1.55}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #150
+[capture] [INFO] Wrote snapshot #151 (18 detections, 194.5ms total)
+[capture] [INFO] Wrote snapshot #152 (19 detections, 125.2ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 688.79, "input_bytes": 2165, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1412, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1441}}
+[Latency] Summary: {"capture_total_latency_ms": 332.04, "api_latency_ms": 688.79, "approx_decision_latency_ms": 1020.83, "decision_latency_sec_context": 1.47}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #152
+[capture] [INFO] Wrote snapshot #153 (20 detections, 344.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1130.65, "input_bytes": 2138, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1402, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1444}}
+[Latency] Summary: {"capture_total_latency_ms": 125.23, "api_latency_ms": 1130.65, "approx_decision_latency_ms": 1255.88, "decision_latency_sec_context": 1.26}
+[AI Action] Decision: play ice-spirit at (0.50, 0.50)
+[capture] [INFO] Wrote snapshot #154 (18 detections, 311.9ms total)
+[AI Action] Result: executed ice-spirit from slot 1 to (0.50, 0.50)
+[Snapshot] Planning from snapshot #154
+[capture] [INFO] Wrote snapshot #155 (20 detections, 358.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 778.6, "input_bytes": 2291, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1458, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1493}}
+[Latency] Summary: {"capture_total_latency_ms": 311.9, "api_latency_ms": 778.6, "approx_decision_latency_ms": 1090.5, "decision_latency_sec_context": 1.47}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 155, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d20", "label": "ice-spirit", "distance": 19.09, "center": {"x": 174.5, "y": 402.5}, "confidence": 0.3315}], "slot_changed": true}
+[Snapshot] Planning from snapshot #155
+[capture] [INFO] Wrote snapshot #156 (18 detections, 362.4ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 968.96, "input_bytes": 2168, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1422, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1451}}
+[Latency] Summary: {"capture_total_latency_ms": 358.75, "api_latency_ms": 968.96, "approx_decision_latency_ms": 1327.71, "decision_latency_sec_context": 1.5}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #156
+[capture] [INFO] Wrote snapshot #157 (15 detections, 368.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 809.54, "input_bytes": 1593, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1227, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1262}}
+[Latency] Summary: {"capture_total_latency_ms": 362.37, "api_latency_ms": 809.54, "approx_decision_latency_ms": 1171.91, "decision_latency_sec_context": 1.47}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #157
+[capture] [INFO] Wrote snapshot #158 (18 detections, 362.6ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 744.63, "input_bytes": 1830, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1310, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1345}}
+[Latency] Summary: {"capture_total_latency_ms": 368.68, "api_latency_ms": 744.63, "approx_decision_latency_ms": 1113.31, "decision_latency_sec_context": 1.47}
+[AI Action] Decision: play cannon at (0.50, 0.62)
+[capture] [INFO] Wrote snapshot #159 (15 detections, 196.1ms total)
+[AI Action] Result: executed cannon from slot 1 to (0.50, 0.62)
+[Snapshot] Planning from snapshot #159
+[capture] [INFO] Wrote snapshot #160 (19 detections, 351.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 661.36, "input_bytes": 1607, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1234, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1269}}
+[Latency] Summary: {"capture_total_latency_ms": 196.06, "api_latency_ms": 661.36, "approx_decision_latency_ms": 857.42, "decision_latency_sec_context": 1.25}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #160
+[capture] [INFO] Wrote snapshot #161 (16 detections, 380.5ms total)
+[capture] [INFO] Wrote snapshot #162 (18 detections, 174.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 975.98, "input_bytes": 1869, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1324, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1366}}
+[Latency] Summary: {"capture_total_latency_ms": 351.31, "api_latency_ms": 975.98, "approx_decision_latency_ms": 1327.29, "decision_latency_sec_context": 1.45}
+[AI Action] Decision: play ice-golem at (0.50, 0.62)
+[AI Action] Result: executed ice-golem from slot 3 to (0.50, 0.62)
+[Snapshot] Planning from snapshot #162
+[capture] [INFO] Wrote snapshot #163 (16 detections, 347.7ms total)
+[capture] [INFO] Wrote snapshot #164 (24 detections, 366.4ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 932.96, "input_bytes": 1525, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1204, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1233}}
+[Latency] Summary: {"capture_total_latency_ms": 174.26, "api_latency_ms": 932.96, "approx_decision_latency_ms": 1107.22, "decision_latency_sec_context": 1.3}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 164, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 2, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 3, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #164
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 616.44, "input_bytes": 1714, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1273, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1302}}
+[Latency] Summary: {"capture_total_latency_ms": 366.39, "api_latency_ms": 616.44, "approx_decision_latency_ms": 982.83, "decision_latency_sec_context": 1.43}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[capture] [INFO] Wrote snapshot #165 (22 detections, 398.6ms total)
+[Snapshot] Planning from snapshot #165
+[capture] [INFO] Wrote snapshot #166 (19 detections, 183.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 616.08, "input_bytes": 1841, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1317, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1346}}
+[Latency] Summary: {"capture_total_latency_ms": 398.63, "api_latency_ms": 616.08, "approx_decision_latency_ms": 1014.71, "decision_latency_sec_context": 1.44}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #166
+[capture] [INFO] Wrote snapshot #167 (15 detections, 354.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 868.17, "input_bytes": 1734, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1285, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1327}}
+[Latency] Summary: {"capture_total_latency_ms": 183.87, "api_latency_ms": 868.17, "approx_decision_latency_ms": 1052.04, "decision_latency_sec_context": 1.21}
+[AI Action] Decision: play skeleton at (0.21, 0.52)
+[capture] [INFO] Wrote snapshot #168 (16 detections, 130.0ms total)
+[AI Action] Result: executed skeleton from slot 3 to (0.21, 0.52)
+[Snapshot] Planning from snapshot #168
+[capture] [INFO] Wrote snapshot #169 (17 detections, 298.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 869.93, "input_bytes": 1437, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1173, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1202}}
+[Latency] Summary: {"capture_total_latency_ms": 130.01, "api_latency_ms": 869.93, "approx_decision_latency_ms": 999.94, "decision_latency_sec_context": 1.17}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #169
+[capture] [INFO] Wrote snapshot #170 (16 detections, 361.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 727.25, "input_bytes": 1334, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1144, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1173}}
+[Latency] Summary: {"capture_total_latency_ms": 298.27, "api_latency_ms": 727.25, "approx_decision_latency_ms": 1025.52, "decision_latency_sec_context": 1.33}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 170, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d16", "label": "skeleton", "distance": 7.48, "center": {"x": 85.0, "y": 427.5}, "confidence": 0.2211}], "slot_changed": true}
+[Snapshot] Planning from snapshot #170
+[capture] [INFO] Wrote snapshot #171 (17 detections, 178.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 919.46, "input_bytes": 1637, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1250, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1285}}
+[Latency] Summary: {"capture_total_latency_ms": 361.7, "api_latency_ms": 919.46, "approx_decision_latency_ms": 1281.16, "decision_latency_sec_context": 1.43}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #171
+[capture] [INFO] Wrote snapshot #172 (20 detections, 377.3ms total)
+[capture] [INFO] Wrote snapshot #173 (20 detections, 354.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 826.17, "input_bytes": 1633, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1244, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1279}}
+[Latency] Summary: {"capture_total_latency_ms": 178.32, "api_latency_ms": 826.17, "approx_decision_latency_ms": 1004.49, "decision_latency_sec_context": 1.23}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #173
+[capture] [INFO] Wrote snapshot #174 (20 detections, 126.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 662.72, "input_bytes": 1962, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1357, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1392}}
+[Latency] Summary: {"capture_total_latency_ms": 354.8, "api_latency_ms": 662.72, "approx_decision_latency_ms": 1017.52, "decision_latency_sec_context": 1.37}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #174
+[capture] [INFO] Wrote snapshot #175 (26 detections, 319.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1053.85, "input_bytes": 1805, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1300, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1342}}
+[Latency] Summary: {"capture_total_latency_ms": 126.73, "api_latency_ms": 1053.85, "approx_decision_latency_ms": 1180.58, "decision_latency_sec_context": 1.19}
+[AI Action] Decision: play hog-rider at (0.78, 0.45)
+[capture] [INFO] Wrote snapshot #176 (24 detections, 399.8ms total)
+[AI Action] Result: executed hog-rider from slot 1 to (0.78, 0.45)
+[Snapshot] Planning from snapshot #176
+[capture] [INFO] Wrote snapshot #177 (26 detections, 536.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1142.75, "input_bytes": 2206, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1440, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1482}}
+[Latency] Summary: {"capture_total_latency_ms": 399.78, "api_latency_ms": 1142.75, "approx_decision_latency_ms": 1542.53, "decision_latency_sec_context": 1.53}
+[AI Action] Decision: play musketeer at (0.78, 0.58)
+[capture] [INFO] Wrote snapshot #178 (26 detections, 329.9ms total)
+[AI Action] Result: executed musketeer from slot 4 to (0.78, 0.58)
+[Snapshot] Planning from snapshot #178
+[capture] [INFO] Wrote snapshot #179 (27 detections, 378.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 885.85, "input_bytes": 2458, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1523, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 37, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1560}}
+[Latency] Summary: {"capture_total_latency_ms": 329.88, "api_latency_ms": 885.85, "approx_decision_latency_ms": 1215.73, "decision_latency_sec_context": 1.47}
+[AI Action] Decision: play the-log at (0.82, 0.35)
+[AI Action] Result: executed the-log from slot 3 to (0.82, 0.35)
+[Snapshot] Planning from snapshot #179
+[capture] [INFO] Wrote snapshot #180 (22 detections, 388.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 649.68, "input_bytes": 2538, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1541, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1570}}
+[Latency] Summary: {"capture_total_latency_ms": 378.49, "api_latency_ms": 649.68, "approx_decision_latency_ms": 1028.17, "decision_latency_sec_context": 1.49}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #180
+[capture] [INFO] Wrote snapshot #181 (20 detections, 394.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 851.99, "input_bytes": 1767, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1281, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1323}}
+[Latency] Summary: {"capture_total_latency_ms": 388.02, "api_latency_ms": 851.99, "approx_decision_latency_ms": 1240.01, "decision_latency_sec_context": 1.51}
+[AI Action] Decision: play ice-spirit at (0.78, 0.41)
+[capture] [INFO] Wrote snapshot #182 (26 detections, 416.9ms total)
+[AI Action] Result: executed ice-spirit from slot 1 to (0.78, 0.41)
+[Snapshot] Planning from snapshot #182
+[capture] [INFO] Wrote snapshot #183 (24 detections, 413.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 919.16, "input_bytes": 1568, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1214, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1249}}
+[Latency] Summary: {"capture_total_latency_ms": 416.89, "api_latency_ms": 919.16, "approx_decision_latency_ms": 1336.05, "decision_latency_sec_context": 1.54}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #183
+[capture] [INFO] Wrote snapshot #184 (28 detections, 397.6ms total)
+[capture] [INFO] Wrote snapshot #185 (31 detections, 403.3ms total)
+[capture] [INFO] Wrote snapshot #186 (29 detections, 324.9ms total)
+[capture] [INFO] Wrote snapshot #187 (29 detections, 404.5ms total)
+[capture] [INFO] Wrote snapshot #188 (22 detections, 441.2ms total)
+[capture] [INFO] Wrote snapshot #189 (22 detections, 407.1ms total)
+[capture] [INFO] Wrote snapshot #190 (22 detections, 402.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 5379.84, "input_bytes": 1736, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1272, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 41, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1313}}
+[Latency] Summary: {"capture_total_latency_ms": 413.28, "api_latency_ms": 5379.84, "approx_decision_latency_ms": 5793.12, "decision_latency_sec_context": 2.11}
+[AI Action] Decision: play cannon at (0.50, 0.55)
+[capture] [INFO] Wrote snapshot #191 (25 detections, 150.4ms total)
+[AI Action] Result: executed cannon from slot 3 to (0.50, 0.55)
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 191, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": false, "current_hand": [{"slot": 1, "label": "ice-golem", "confidence": 0.7442, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 24.2347}, {"slot": 2, "label": "fireball", "confidence": 0.7641, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 14.5416}, {"slot": 3, "label": "cannon", "confidence": 0.3091, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 3.8841}, {"slot": 4, "label": "musketeer", "confidence": 0.6031, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 14.1481}]}
+[Snapshot] Planning from snapshot #191
+[capture] [INFO] Wrote snapshot #192 (28 detections, 352.4ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1030.25, "input_bytes": 1531, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1207, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1249}}
+[Latency] Summary: {"capture_total_latency_ms": 150.44, "api_latency_ms": 1030.25, "approx_decision_latency_ms": 1180.69, "decision_latency_sec_context": 1.89}
+[AI Action] Decision: play musketeer at (0.22, 0.58)
+[capture] [INFO] Wrote snapshot #193 (25 detections, 329.1ms total)
+[AI Action] Result: executed musketeer from slot 4 to (0.22, 0.58)
+[Snapshot] Planning from snapshot #193
+[capture] [INFO] Wrote snapshot #194 (24 detections, 347.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 791.04, "input_bytes": 1677, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1254, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1289}}
+[Latency] Summary: {"capture_total_latency_ms": 329.09, "api_latency_ms": 791.04, "approx_decision_latency_ms": 1120.13, "decision_latency_sec_context": 2.04}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #194
+[capture] [INFO] Wrote snapshot #195 (25 detections, 388.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 725.56, "input_bytes": 1445, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1173, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1215}}
+[Latency] Summary: {"capture_total_latency_ms": 347.85, "api_latency_ms": 725.56, "approx_decision_latency_ms": 1073.41, "decision_latency_sec_context": 2.0}
+[AI Action] Decision: play ice-golem at (0.22, 0.62)
+[capture] [INFO] Wrote snapshot #196 (23 detections, 358.7ms total)
+[AI Action] Result: executed ice-golem from slot 1 to (0.22, 0.62)
+[Snapshot] Planning from snapshot #196
+[capture] [INFO] Wrote snapshot #197 (29 detections, 429.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 890.07, "input_bytes": 1474, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1182, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1211}}
+[Latency] Summary: {"capture_total_latency_ms": 358.69, "api_latency_ms": 890.07, "approx_decision_latency_ms": 1248.76, "decision_latency_sec_context": 2.01}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #197
+[capture] [INFO] Wrote snapshot #198 (24 detections, 319.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 722.79, "input_bytes": 1662, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1254, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1289}}
+[Latency] Summary: {"capture_total_latency_ms": 429.3, "api_latency_ms": 722.79, "approx_decision_latency_ms": 1152.09, "decision_latency_sec_context": 2.09}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 198, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 2, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 3, "label": "skeleton", "confidence": 0.6424, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 13.9283}, {"slot": 4, "label": null, "confidence": null, "selected": false, "source_detection_id": null}]}
+[Snapshot] Planning from snapshot #198
+[capture] [INFO] Wrote snapshot #199 (25 detections, 344.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1021.16, "input_bytes": 1549, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1211, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 41, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1252}}
+[Latency] Summary: {"capture_total_latency_ms": 319.78, "api_latency_ms": 1021.16, "approx_decision_latency_ms": 1340.94, "decision_latency_sec_context": 2.0}
+[AI Action] Decision: play skeleton at (0.50, 0.55)
+[capture] [INFO] Wrote snapshot #200 (21 detections, 400.2ms total)
+[AI Action] Result: executed skeleton from slot 3 to (0.50, 0.55)
+[Snapshot] Planning from snapshot #200
+[capture] [INFO] Wrote snapshot #201 (20 detections, 361.1ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 617.9, "input_bytes": 1238, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1094, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1123}}
+[Latency] Summary: {"capture_total_latency_ms": 400.15, "api_latency_ms": 617.9, "approx_decision_latency_ms": 1018.05, "decision_latency_sec_context": 2.05}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 201, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d11", "label": "skeleton", "distance": 28.7, "center": {"x": 213.0, "y": 443.5}, "confidence": 0.536}, {"id": "d17", "label": "skeleton", "distance": 53.27, "center": {"x": 176.0, "y": 509.5}, "confidence": 0.3263}], "slot_changed": true}
+[Snapshot] Planning from snapshot #201
+[capture] [INFO] Wrote snapshot #202 (24 detections, 186.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 826.13, "input_bytes": 1547, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1209, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1238}}
+[Latency] Summary: {"capture_total_latency_ms": 361.13, "api_latency_ms": 826.13, "approx_decision_latency_ms": 1187.26, "decision_latency_sec_context": 1.44}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #202
+[capture] [INFO] Wrote snapshot #203 (18 detections, 326.6ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 719.93, "input_bytes": 2374, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1483, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1518}}
+[Latency] Summary: {"capture_total_latency_ms": 186.5, "api_latency_ms": 719.93, "approx_decision_latency_ms": 906.43, "decision_latency_sec_context": 1.23}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #203
+[capture] [INFO] Wrote snapshot #204 (20 detections, 188.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 713.13, "input_bytes": 1915, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1333, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1368}}
+[Latency] Summary: {"capture_total_latency_ms": 326.55, "api_latency_ms": 713.13, "approx_decision_latency_ms": 1039.68, "decision_latency_sec_context": 1.36}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #204
+[capture] [INFO] Wrote snapshot #205 (22 detections, 319.1ms total)
+[capture] [INFO] Wrote snapshot #206 (20 detections, 385.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1132.34, "input_bytes": 2078, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1391, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 43, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1434}}
+[Latency] Summary: {"capture_total_latency_ms": 188.49, "api_latency_ms": 1132.34, "approx_decision_latency_ms": 1320.83, "decision_latency_sec_context": 1.27}
+[AI Action] Decision: play the-log at (0.78, 0.43)
+[AI Action] Result: executed the-log from slot 1 to (0.78, 0.43)
+[Snapshot] Planning from snapshot #206
+[capture] [INFO] Wrote snapshot #207 (24 detections, 372.1ms total)
+[capture] [INFO] Wrote snapshot #208 (20 detections, 427.4ms total)
+[capture] [INFO] Wrote snapshot #209 (22 detections, 341.4ms total)
+[capture] [INFO] Wrote snapshot #210 (20 detections, 372.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 2867.12, "input_bytes": 1883, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1321, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 44, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1365}}
+[Latency] Summary: {"capture_total_latency_ms": 385.65, "api_latency_ms": 2867.12, "approx_decision_latency_ms": 3252.77, "decision_latency_sec_context": 1.71}
+[AI Action] Decision: play ice-spirit at (0.75, 0.47)
+[capture] [INFO] Wrote snapshot #211 (18 detections, 376.9ms total)
+[AI Action] Result: executed ice-spirit from slot 3 to (0.75, 0.47)
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 211, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": false, "current_hand": [{"slot": 1, "label": "cannon", "confidence": 0.4344, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 6.7247}, {"slot": 2, "label": "fireball", "confidence": 0.7583, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 14.46}, {"slot": 3, "label": "ice-spirit", "confidence": 0.5244, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 9.2996}, {"slot": 4, "label": "hog-rider", "confidence": 0.7439, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 12.7236}]}
+[Snapshot] Planning from snapshot #211
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 630.95, "input_bytes": 2066, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1379, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1414}}
+[Latency] Summary: {"capture_total_latency_ms": 376.86, "api_latency_ms": 630.95, "approx_decision_latency_ms": 1007.81, "decision_latency_sec_context": 1.69}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[capture] [INFO] Wrote snapshot #212 (19 detections, 351.2ms total)
+[Snapshot] Planning from snapshot #212
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 567.14, "input_bytes": 2230, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1437, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1466}}
+[Latency] Summary: {"capture_total_latency_ms": 351.17, "api_latency_ms": 567.14, "approx_decision_latency_ms": 918.31, "decision_latency_sec_context": 1.61}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[capture] [INFO] Wrote snapshot #213 (20 detections, 378.1ms total)
+[Snapshot] Planning from snapshot #213
+[capture] [INFO] Wrote snapshot #214 (16 detections, 398.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 882.7, "input_bytes": 1728, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1269, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1311}}
+[Latency] Summary: {"capture_total_latency_ms": 378.14, "api_latency_ms": 882.7, "approx_decision_latency_ms": 1260.84, "decision_latency_sec_context": 1.67}
+[AI Action] Decision: play hog-rider at (0.22, 0.62)
+[capture] [INFO] Wrote snapshot #215 (21 detections, 382.2ms total)
+[AI Action] Result: executed hog-rider from slot 4 to (0.22, 0.62)
+[Snapshot] Planning from snapshot #215
+[capture] [INFO] Wrote snapshot #216 (21 detections, 317.1ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1012.79, "input_bytes": 2138, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1402, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1444}}
+[Latency] Summary: {"capture_total_latency_ms": 382.18, "api_latency_ms": 1012.79, "approx_decision_latency_ms": 1394.97, "decision_latency_sec_context": 1.7}
+[AI Action] Decision: play musketeer at (0.50, 0.62)
+[AI Action] Result: executed musketeer from slot 3 to (0.50, 0.62)
+[INFO] waiting: no battle detected (screen=other, snapshot #216)
+[capture] [INFO] Wrote snapshot #217 (20 detections, 434.3ms total)
+[Snapshot] Planning from snapshot #217
+[capture] [INFO] Wrote snapshot #218 (23 detections, 336.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 725.34, "input_bytes": 1477, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1182, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1217}}
+[Latency] Summary: {"capture_total_latency_ms": 434.33, "api_latency_ms": 725.34, "approx_decision_latency_ms": 1159.67, "decision_latency_sec_context": 1.75}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #218
+[capture] [INFO] Wrote snapshot #219 (22 detections, 383.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 935.27, "input_bytes": 1738, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1271, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1313}}
+[Latency] Summary: {"capture_total_latency_ms": 336.86, "api_latency_ms": 935.27, "approx_decision_latency_ms": 1272.13, "decision_latency_sec_context": 1.68}
+[AI Action] Decision: play ice-golem at (0.50, 0.62)
+[capture] [INFO] Wrote snapshot #220 (19 detections, 396.9ms total)
+[AI Action] Result: executed ice-golem from slot 4 to (0.50, 0.62)
+[Snapshot] Planning from snapshot #220
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 627.7, "input_bytes": 1425, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1167, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1196}}
+[Latency] Summary: {"capture_total_latency_ms": 396.88, "api_latency_ms": 627.7, "approx_decision_latency_ms": 1024.58, "decision_latency_sec_context": 1.68}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[capture] [INFO] Wrote snapshot #221 (22 detections, 416.7ms total)
+[Snapshot] Planning from snapshot #221
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 632.78, "input_bytes": 1652, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1245, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1280}}
+[Latency] Summary: {"capture_total_latency_ms": 416.74, "api_latency_ms": 632.78, "approx_decision_latency_ms": 1049.52, "decision_latency_sec_context": 1.42}
+[AI Action] Decision: play skeleton at (0.50, 0.62)
+[capture] [INFO] Wrote snapshot #222 (20 detections, 369.2ms total)
+[AI Action] Result: executed skeleton from slot 3 to (0.50, 0.62)
+[Snapshot] Planning from snapshot #222
+[capture] [INFO] Wrote snapshot #223 (17 detections, 331.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1021.01, "input_bytes": 1441, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1172, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1207}}
+[Latency] Summary: {"capture_total_latency_ms": 369.2, "api_latency_ms": 1021.01, "approx_decision_latency_ms": 1390.21, "decision_latency_sec_context": 1.42}
+[AI Action] Decision: play skeleton at (0.50, 0.60)
+[capture] [INFO] Wrote snapshot #224 (21 detections, 405.8ms total)
+[AI Action] Result: executed skeleton from slot 3 to (0.50, 0.60)
+[Snapshot] Planning from snapshot #224
+[capture] [INFO] Wrote snapshot #225 (25 detections, 383.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 642.11, "input_bytes": 1132, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1060, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1089}}
+[Latency] Summary: {"capture_total_latency_ms": 405.78, "api_latency_ms": 642.11, "approx_decision_latency_ms": 1047.89, "decision_latency_sec_context": 1.47}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 225, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d20", "label": "skeleton", "distance": 105.65, "center": {"x": 281.5, "y": 450.0}, "confidence": 0.3621}], "slot_changed": true}
+[Snapshot] Planning from snapshot #225
+[capture] [INFO] Wrote snapshot #226 (18 detections, 321.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 610.99, "input_bytes": 2192, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1430, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1459}}
+[Latency] Summary: {"capture_total_latency_ms": 383.78, "api_latency_ms": 610.99, "approx_decision_latency_ms": 994.77, "decision_latency_sec_context": 1.41}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #226
+[capture] [INFO] Wrote snapshot #227 (18 detections, 380.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 798.96, "input_bytes": 1362, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1146, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1188}}
+[Latency] Summary: {"capture_total_latency_ms": 321.02, "api_latency_ms": 798.96, "approx_decision_latency_ms": 1119.98, "decision_latency_sec_context": 1.32}
+[AI Action] Decision: play ice-spirit at (0.22, 0.52)
+[capture] [INFO] Wrote snapshot #228 (23 detections, 336.8ms total)
+[AI Action] Result: executed ice-spirit from slot 3 to (0.22, 0.52)
+[Snapshot] Planning from snapshot #228
+[capture] [INFO] Wrote snapshot #229 (23 detections, 361.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 831.82, "input_bytes": 1962, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1346, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1381}}
+[Latency] Summary: {"capture_total_latency_ms": 336.83, "api_latency_ms": 831.82, "approx_decision_latency_ms": 1168.65, "decision_latency_sec_context": 1.35}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #229
+[capture] [INFO] Wrote snapshot #230 (29 detections, 363.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 816.74, "input_bytes": 1551, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1213, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1248}}
+[Latency] Summary: {"capture_total_latency_ms": 361.73, "api_latency_ms": 816.74, "approx_decision_latency_ms": 1178.47, "decision_latency_sec_context": 1.36}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 230, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": true, "current_hand": [{"slot": 1, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 2, "label": "fireball", "confidence": 0.5594, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 7.0665}, {"slot": 3, "label": null, "confidence": null, "selected": false, "source_detection_id": null}, {"slot": 4, "label": "the-log", "confidence": 0.8253, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 17.2665}]}
+[Snapshot] Planning from snapshot #230
+[capture] [INFO] Wrote snapshot #231 (26 detections, 314.3ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 716.37, "input_bytes": 2211, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1442, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1471}}
+[Latency] Summary: {"capture_total_latency_ms": 362.98, "api_latency_ms": 716.37, "approx_decision_latency_ms": 1079.35, "decision_latency_sec_context": 1.37}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #231
+[capture] [INFO] Wrote snapshot #232 (27 detections, 411.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 816.15, "input_bytes": 1924, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1340, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1375}}
+[Latency] Summary: {"capture_total_latency_ms": 314.28, "api_latency_ms": 816.15, "approx_decision_latency_ms": 1130.43, "decision_latency_sec_context": 1.35}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #232
+[capture] [INFO] Wrote snapshot #233 (25 detections, 350.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 748.84, "input_bytes": 2236, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1447, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1476}}
+[Latency] Summary: {"capture_total_latency_ms": 411.78, "api_latency_ms": 748.84, "approx_decision_latency_ms": 1160.62, "decision_latency_sec_context": 1.41}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #233
+[capture] [INFO] Wrote snapshot #234 (23 detections, 387.6ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 940.53, "input_bytes": 2153, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1419, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1454}}
+[Latency] Summary: {"capture_total_latency_ms": 350.0, "api_latency_ms": 940.53, "approx_decision_latency_ms": 1290.53, "decision_latency_sec_context": 1.39}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #234
+[capture] [INFO] Wrote snapshot #235 (22 detections, 183.5ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 767.24, "input_bytes": 1452, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1174, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1209}}
+[Latency] Summary: {"capture_total_latency_ms": 387.56, "api_latency_ms": 767.24, "approx_decision_latency_ms": 1154.8, "decision_latency_sec_context": 1.44}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #235
+[capture] [INFO] Wrote snapshot #236 (24 detections, 321.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 817.28, "input_bytes": 1247, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1100, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 29, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1129}}
+[Latency] Summary: {"capture_total_latency_ms": 183.45, "api_latency_ms": 817.28, "approx_decision_latency_ms": 1000.73, "decision_latency_sec_context": 1.24}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #236
+[capture] [INFO] Wrote snapshot #237 (27 detections, 351.6ms total)
+[capture] [INFO] Wrote snapshot #238 (24 detections, 354.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 829.39, "input_bytes": 1733, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1274, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 41, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1315}}
+[Latency] Summary: {"capture_total_latency_ms": 321.91, "api_latency_ms": 829.39, "approx_decision_latency_ms": 1151.3, "decision_latency_sec_context": 1.38}
+[AI Action] Decision: play cannon at (0.50, 0.62)
+[AI Action] Result: executed cannon from slot 1 to (0.50, 0.62)
+[Snapshot] Planning from snapshot #238
+[capture] [INFO] Wrote snapshot #239 (26 detections, 426.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1049.61, "input_bytes": 1950, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1349, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 43, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1392}}
+[Latency] Summary: {"capture_total_latency_ms": 354.92, "api_latency_ms": 1049.61, "approx_decision_latency_ms": 1404.53, "decision_latency_sec_context": 1.44}
+[AI Action] Decision: play the-log at (0.82, 0.36)
+[capture] [INFO] Wrote snapshot #240 (26 detections, 365.0ms total)
+[AI Action] Result: executed the-log from slot 4 to (0.82, 0.36)
+[Snapshot] Planning from snapshot #240
+[capture] [INFO] Wrote snapshot #241 (31 detections, 380.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 897.58, "input_bytes": 1664, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1245, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1280}}
+[Latency] Summary: {"capture_total_latency_ms": 365.03, "api_latency_ms": 897.58, "approx_decision_latency_ms": 1262.61, "decision_latency_sec_context": 1.47}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #241
+[capture] [INFO] Wrote snapshot #242 (29 detections, 364.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 771.88, "input_bytes": 2257, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1445, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1480}}
+[Latency] Summary: {"capture_total_latency_ms": 380.04, "api_latency_ms": 771.88, "approx_decision_latency_ms": 1151.92, "decision_latency_sec_context": 1.48}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[AI Action] Verification: {"status": "verified", "snapshot_sequence": 242, "reason": "matching friendly unit detected near board tap", "matches": [{"id": "d10", "label": "the-log", "distance": 132.51, "center": {"x": 178.5, "y": 321.0}, "confidence": 0.8396}], "slot_changed": true}
+[Snapshot] Planning from snapshot #242
+[capture] [INFO] Wrote snapshot #243 (29 detections, 402.4ms total)
+[capture] [INFO] Wrote snapshot #244 (25 detections, 198.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 955.19, "input_bytes": 1519, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1199, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1234}}
+[Latency] Summary: {"capture_total_latency_ms": 364.68, "api_latency_ms": 955.19, "approx_decision_latency_ms": 1319.87, "decision_latency_sec_context": 1.49}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #244
+[capture] [INFO] Wrote snapshot #245 (26 detections, 152.2ms total)
+[capture] [INFO] Wrote snapshot #246 (28 detections, 337.6ms total)
+[capture] [INFO] Wrote snapshot #247 (23 detections, 322.1ms total)
+[capture] [INFO] Wrote snapshot #248 (23 detections, 164.9ms total)
+[capture] [INFO] Wrote snapshot #249 (24 detections, 132.9ms total)
+[capture] [INFO] Wrote snapshot #250 (23 detections, 138.9ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 3582.08, "input_bytes": 1779, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1286, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 42, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1328}}
+[Latency] Summary: {"capture_total_latency_ms": 198.86, "api_latency_ms": 3582.08, "approx_decision_latency_ms": 3780.94, "decision_latency_sec_context": 1.66}
+[AI Action] Decision: play hog-rider at (0.22, 0.50)
+[AI Action] Result: executed hog-rider from slot 3 to (0.22, 0.50)
+[AI Action] Verification: {"status": "unverified", "snapshot_sequence": 250, "reason": "no matching unit detected near board tap within 4 snapshots", "slot_changed": false, "current_hand": [{"slot": 1, "label": "musketeer", "confidence": 0.8129, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 27.0566}, {"slot": 2, "label": "fireball", "confidence": 0.7608, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 14.4218}, {"slot": 3, "label": "hog-rider", "confidence": 0.7454, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 13.0474}, {"slot": 4, "label": "ice-golem", "confidence": 0.5929, "selected": false, "source_detection_id": null, "source": "slot_classifier", "margin": 11.4805}]}
+[Snapshot] Planning from snapshot #250
+[capture] [INFO] Wrote snapshot #251 (24 detections, 339.0ms total)
+[capture] [INFO] Wrote snapshot #252 (27 detections, 321.0ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 1051.35, "input_bytes": 1479, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1185, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1220}}
+[Latency] Summary: {"capture_total_latency_ms": 138.91, "api_latency_ms": 1051.35, "approx_decision_latency_ms": 1190.26, "decision_latency_sec_context": 1.63}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #252
+[capture] [INFO] Wrote snapshot #253 (24 detections, 377.8ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 716.95, "input_bytes": 1431, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1169, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1204}}
+[Latency] Summary: {"capture_total_latency_ms": 320.98, "api_latency_ms": 716.95, "approx_decision_latency_ms": 1037.93, "decision_latency_sec_context": 1.8}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #253
+[capture] [INFO] Wrote snapshot #254 (26 detections, 364.7ms total)
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 923.83, "input_bytes": 1442, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1172, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1207}}
+[Latency] Summary: {"capture_total_latency_ms": 377.76, "api_latency_ms": 923.83, "approx_decision_latency_ms": 1301.59, "decision_latency_sec_context": 1.87}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[Snapshot] Planning from snapshot #254
+[Latency] API: {"model": "gpt-5.4-mini", "provider": "openai", "effort": null, "http_status": 200, "latency_ms": 710.43, "input_bytes": 2254, "instructions_chars": 2207, "response_status": "completed", "usage": {"input_tokens": 1451, "input_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "output_tokens": 35, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 1486}}
+[Latency] Summary: {"capture_total_latency_ms": 364.74, "api_latency_ms": 710.43, "approx_decision_latency_ms": 1075.17, "decision_latency_sec_context": 1.82}
+[AI Action] Decision: idle
+[AI Action] Result: idle
+[capture] [INFO] Wrote snapshot #255 (14 detections, 1276.1ms total)
+[INFO] waiting: no battle detected (screen=other, snapshot #255)
+[capture] [INFO] Wrote snapshot #256 (10 detections, 1247.7ms total)
+[capture] [INFO] Wrote snapshot #257 (13 detections, 1246.0ms total)
+[capture] [INFO] Wrote snapshot #258 (5 detections, 1286.5ms total)
+[INFO] waiting: no battle detected (screen=other, snapshot #258)
+[capture] [INFO] Wrote snapshot #259 (5 detections, 1458.8ms total)
+[capture] [INFO] Wrote snapshot #260 (8 detections, 1271.7ms total)
+[Match] finished (1)
+[INFO] stopping: played 1 match(es)
+[INFO] latency figure saved: figures/battle_20260805_001822.png
+[INFO] recording saved: recordings/battle_20260805_001822.mp4 (11671 frames)
