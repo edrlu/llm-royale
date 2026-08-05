@@ -745,8 +745,18 @@ class AnthropicPlanner(Planner):
     # Enough for the decision object; the schema keeps responses short.
     MAX_TOKENS = 256
 
-    def __init__(self, model: str):
+    # Room for the model to think when effort demands it; the schema still keeps
+    # the visible answer short.
+    MAX_TOKENS_THINKING = 4096
+
+    def __init__(self, model: str, effort: str = "low"):
         super().__init__(model)
+        if effort not in EFFORT_LEVELS:
+            raise RuntimeError(
+                f"unknown effort {effort!r}; choose one of {', '.join(EFFORT_LEVELS)}"
+            )
+        self.effort = effort
+        self.thinking = effort in EFFORT_REQUIRING_THINKING
         if not os.environ.get("ANTHROPIC_API_KEY"):
             raise RuntimeError("ANTHROPIC_API_KEY is required for the anthropic provider")
         try:
@@ -784,12 +794,12 @@ class AnthropicPlanner(Planner):
         started = time.time()
         response = self._client.messages.create(
             model=self.model,
-            max_tokens=self.MAX_TOKENS,
+            max_tokens=self.MAX_TOKENS_THINKING if self.thinking else self.MAX_TOKENS,
             system=instructions,
             messages=[{"role": "user", "content": input_text}],
-            thinking={"type": "disabled"},
+            thinking={"type": "adaptive"} if self.thinking else {"type": "disabled"},
             output_config={
-                "effort": "low",
+                "effort": self.effort,
                 "format": {"type": "json_schema", "schema": self.decision_schema()},
             },
         )
@@ -799,6 +809,8 @@ class AnthropicPlanner(Planner):
         self.last_api_debug = {
             "model": self.model,
             "provider": "anthropic",
+            "effort": self.effort,
+            "thinking": self.thinking,
             "latency_ms": elapsed_ms,
             "input_bytes": len(input_text.encode("utf-8")),
             "instructions_chars": len(instructions),
@@ -836,6 +848,14 @@ DEFAULT_MODELS = {
     "openai": "gpt-5.4-mini",
     "anthropic": "claude-opus-5",
 }
+
+# Claude effort levels, cheapest and fastest first.
+EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
+
+# Thinking can only be switched off at high effort or below; pairing it with
+# xhigh or max is rejected outright. Above that line the planner has to let the
+# model think, which is much slower — a deliberate trade, not a default.
+EFFORT_REQUIRING_THINKING = ("xhigh", "max")
 
 
 def read_snapshot(path: str) -> Optional[dict]:
@@ -948,6 +968,11 @@ def main() -> int:
         help="Which API decides the moves (default: openai, or $LLM_PROVIDER)",
     )
     parser.add_argument(
+        "--effort", choices=EFFORT_LEVELS, default=os.environ.get("LLM_EFFORT", "low"),
+        help="How hard the planner thinks, Claude only (default: low, or $LLM_EFFORT). "
+             "xhigh and max require thinking, which is much slower in a live match",
+    )
+    parser.add_argument(
         "--model", default=None,
         help="Model id. Defaults to the provider's default: "
              + ", ".join(f"{name}={model}" for name, model in sorted(DEFAULT_MODELS.items())),
@@ -1013,7 +1038,12 @@ def main() -> int:
     model = args.model or os.environ.get(
         f"{args.provider.upper()}_MODEL", DEFAULT_MODELS[args.provider]
     )
-    print(f"[INFO] planner: {args.provider} / {model}")
+    planner_note = f"[INFO] planner: {args.provider} / {model}"
+    if args.provider == "anthropic":
+        planner_note += f" / effort {args.effort}"
+        if args.effort in EFFORT_REQUIRING_THINKING:
+            planner_note += " (thinking on — expect much higher latency)"
+    print(planner_note)
 
     stopper = Stopper(args.stop_file)
 
@@ -1078,7 +1108,10 @@ def main() -> int:
         pass
 
     worker = CaptureWorker(args.python_bin, args.state_json)
-    planner = PLANNERS[args.provider](model)
+    if args.provider == "anthropic":
+        planner = AnthropicPlanner(model, effort=args.effort)
+    else:
+        planner = PLANNERS[args.provider](model)
     executor = MirrorActionExecutor()
     cycle_tracker = CycleTracker()
     tower_tracker = TowerHealthTracker()
