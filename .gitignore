@@ -1,7 +1,7 @@
 # Secrets
 .env
 .claude/
-.haiku_4_5_vs_gpt_5_4_mini/
+haiku_4_5_vs_gpt_5_4_mini/
 
 
 # Python
